@@ -326,7 +326,9 @@
             const response = await fetch(ctx + "/cart/update", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: parseInt(cartItemId), quantity: parseInt(newQuantity) })
+                body: JSON.stringify({ 
+                	"productId": parseInt(cartItemId), 
+                	"quantity": parseInt(newQuantity) })
             });
 
             if (!response.ok) {
@@ -356,7 +358,8 @@
             const response = await fetch(ctx + "/cart/delete", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: parseInt(cartItemId) })
+                body: JSON.stringify({ 
+                	"productId": parseInt(cartItemId) })
             });
 
             if (!response.ok) {
@@ -393,7 +396,8 @@
              const response = await fetch(ctx + "/cart/delete", {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ productId: cartItemIds })
+                body: JSON.stringify({ 
+                	"productId": cartItemIds })
             });
 
             if (!response.ok) {
@@ -438,7 +442,8 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 // 주소를 Body에 JSON 형태로 포함시킵니다.
-                body: JSON.stringify({ address: deliveryAddress }) 
+                body: JSON.stringify({ 
+                	"address": deliveryAddress }) 
             });
 
             if (!orderResponse.ok) {
