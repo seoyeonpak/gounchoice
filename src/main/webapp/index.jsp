@@ -64,7 +64,7 @@
         // -----------------------------------------------------------
 
         async function checkLoginStatus() {		
-		    const response = await fetch(CONTEXT_PATH + '/login', {
+		    const response = await fetch(CONTEXT_PATH + '/user/login', {
 		        method: 'GET',
 		        headers: {
 		            'Content-Type': 'application/json;'
@@ -84,7 +84,7 @@
         function renderLoggedInMenu(userName) {
             UTILITY_AREA.innerHTML = `
                 <span style="font-weight: 500; margin-right: 5px; color: #4b3832;">${userName}님</span>
-                <a href="${CONTEXT_PATH}/logout">로그아웃</a>
+                <a href="${CONTEXT_PATH}/user/logout">로그아웃</a>
                 <a href="#">마이페이지</a>
                 <a href="#">장바구니</a>
             `;
