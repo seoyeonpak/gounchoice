@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../resources/css/style.css"> 
 
     <% 
-        String ctx = request.getContextPath(); 
+        String ctx = request.getContextPath();
     %>
     
     <%
@@ -415,61 +415,22 @@
     }
 
     /**
-     * 5. 주문하기 기능 (POST /order/checkout 및 POST /cart/clear 통합)
+     * 5. 주문하기 기능
+     * ⭐ 변경: 주문 생성 API 호출 없이 checkout.jsp로 이동합니다. ⭐
      */
     async function goOrder() {
         // 1. 주문 생성 전에 장바구니가 비어있는지 확인
         const cartListResponse = await fetch(ctx + "/cart/list");
         const cartData = await cartListResponse.json();
+        
         if (!cartData.cartList || cartData.cartList.length === 0) {
             alert("장바구니가 비어있어 주문할 수 없습니다.");
             return;
         }
         
-        if (!confirm("장바구니의 모든 상품으로 주문을 진행하시겠습니까?")) return;
-
-        // ⭐⭐⭐ 주문에 사용할 주소 정보를 가져옴 ⭐⭐⭐
-        const deliveryAddress = currentUserAddress; 
-        
-        if (!deliveryAddress) {
-             alert("사용자 주소 정보가 없습니다. 마이페이지에서 주소를 설정해주세요.");
-             return;
-        }
-
-        try {
-            // ⭐ 5-1. 주문 생성 API 호출 (POST /order/checkout) - 사용자 주소 포함 ⭐
-            const orderResponse = await fetch(ctx + "/order/checkout", {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                // 주소를 Body에 JSON 형태로 포함시킵니다.
-                body: JSON.stringify({ 
-                	"address": deliveryAddress }) 
-            });
-
-            if (!orderResponse.ok) {
-                const errorData = await orderResponse.json().catch(() => ({ message: '주문 실패' }));
-                throw new Error(errorData.message || '주문 생성 중 오류가 발생했습니다.');
-            }
-            
-            console.log("주문 생성 성공. 장바구니 비우기 진행.");
-
-            // ⭐ 5-2. 주문 성공 후 장바구니 비우기 API 호출 (POST /cart/clear) ⭐
-            const clearResponse = await fetch(ctx + "/cart/clear", {
-                method: 'POST'
-            });
-            
-            if (!clearResponse.ok) {
-                console.error("장바구니 비우기 오류 (주문은 성공했을 수 있음)");
-            }
-
-            // ⭐ 5-3. 주문 목록 페이지로 이동 ⭐
-            alert("주문이 성공적으로 완료되었습니다.");
-            location.href = ctx + "/order/list";
-
-        } catch (error) {
-            console.error("주문 처리 오류:", error);
-            alert("주문 처리에 실패했습니다: " + error.message);
-        }
+        // ⭐ 2. checkout.jsp 페이지로 이동 ⭐
+        console.log("주문 결제 페이지(checkout.jsp)로 이동합니다.");
+        location.href = ctx + "/views/checkout.jsp"; 
     }
     
     // --- DOMContentLoaded 이벤트 리스너 (초기 로드) ---
