@@ -64,7 +64,8 @@
                 "address": address
             };
 
-            fetch("${pageContext.request.contextPath}/register", {
+
+            fetch('${pageContext.request.contextPath}/user/register', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import model.service.UserService;
 import model.vo.Users;
 
-@WebServlet("/register")
+@WebServlet("/user/register")
 public class RegisterServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 

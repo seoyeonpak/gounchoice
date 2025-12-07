@@ -3,102 +3,229 @@ package model.dao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
-import common.JDBCTemplate;
 import model.vo.CartItem;
 
 public class CartDAO {
 
-    // 1. 장바구니 생성 (사용자 가입 시 또는 첫 담기 시)
-    public int createCart(Connection conn, int userId) {
-        int result = 0;
-        PreparedStatement pstmt = null;
-        String sql = "INSERT INTO CART (user_id) VALUES (?)"; // cart_id는 자동생성
-        try {
-            pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, userId);
-            result = pstmt.executeUpdate();
-        } catch (Exception e) {
-            // 이미 장바구니가 있으면 무시
-        } finally {
-            JDBCTemplate.close(pstmt);
-        }
-        return result;
-    }
+    // ==========================================================
+    // 1. 기본 유틸리티 (장바구니 ID 찾기, 생성, 중복 확인)
+    // ==========================================================
 
-    // 2. 장바구니 아이디 찾기
-    public int getCartId(Connection conn, int userId) {
-        int cartId = 0;
+    // 내 장바구니 번호(cart_id) 조회 (없으면 0 반환)
+    public int selectCartIdByUserId(Connection conn, int userId) {
         PreparedStatement pstmt = null;
         ResultSet rs = null;
+        int cartId = 0;
         String sql = "SELECT cart_id FROM CART WHERE user_id = ?";
+
         try {
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, userId);
             rs = pstmt.executeQuery();
-            if(rs.next()) cartId = rs.getInt("cart_id");
-        } catch (Exception e) {
+            if (rs.next()) {
+                cartId = rs.getInt("cart_id");
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            JDBCTemplate.close(rs);
-            JDBCTemplate.close(pstmt);
+            close(rs);
+            close(pstmt);
         }
         return cartId;
     }
 
-    // 3. 상품 담기 (CART_ITEM 추가)
-    public int addCartItem(Connection conn, int cartId, int productId, int qty) {
-        int result = 0;
+    // 장바구니 생성 (처음 담을 때 실행)
+    public int createCart(Connection conn, int userId) {
         PreparedStatement pstmt = null;
-        // 이미 있으면 수량 증가, 없으면 추가하는 MERGE 문이 좋지만, 간단하게 INSERT 시도
-        String sql = "INSERT INTO CART_ITEM (cart_id, product_id, quantity) VALUES (?, ?, ?)";
+        ResultSet rs = null;
+        int generatedCartId = 0;
+        String sql = "INSERT INTO CART (user_id) VALUES (?)";
+
+        try {
+            // PK값을 리턴받기 위해 두 번째 인자 사용
+            pstmt = conn.prepareStatement(sql, new String[]{"cart_id"});
+            pstmt.setInt(1, userId);
+            pstmt.executeUpdate();
+            
+            rs = pstmt.getGeneratedKeys();
+            if (rs.next()) {
+                generatedCartId = rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            close(rs);
+            close(pstmt);
+        }
+        return generatedCartId;
+    }
+
+    // 해당 상품이 이미 장바구니에 있는지 확인 (수량 반환)
+    public int checkItemExists(Connection conn, int cartId, int productId) {
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int quantity = 0;
+        String sql = "SELECT quantity FROM CART_ITEM WHERE cart_id = ? AND product_id = ?";
+
         try {
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, cartId);
             pstmt.setInt(2, productId);
-            pstmt.setInt(3, qty);
-            result = pstmt.executeUpdate();
-        } catch (Exception e) {
+            rs = pstmt.executeQuery();
+            if (rs.next()) {
+                quantity = rs.getInt("quantity");
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            JDBCTemplate.close(pstmt);
+            close(rs);
+            close(pstmt);
+        }
+        return quantity;
+    }
+
+    // ==========================================================
+    // 2. 데이터 조작 (INSERT, UPDATE, DELETE)
+    // ==========================================================
+
+    // 장바구니 아이템 추가 (INSERT)
+    public int insertCartItem(Connection conn, CartItem item) {
+        PreparedStatement pstmt = null;
+        int result = 0;
+        String sql = "INSERT INTO CART_ITEM (cart_id, product_id, quantity) VALUES (?, ?, ?)";
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, item.getCartId());
+            pstmt.setInt(2, item.getProductId());
+            pstmt.setInt(3, item.getQuantity());
+            result = pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            close(pstmt);
         }
         return result;
     }
 
-    // 4. 장바구니 목록 조회 (상품 정보와 조인)
-    public ArrayList<CartItem> selectCartItems(Connection conn, int userId) {
-        ArrayList<CartItem> list = new ArrayList<>();
+    // 장바구니 수량 변경 (UPDATE)
+    // isAdd가 true면 기존 수량에 더하기, false면 입력값으로 변경
+    public int updateCartItemQuantity(Connection conn, int cartId, int productId, int quantity, boolean isAdd) {
         PreparedStatement pstmt = null;
-        ResultSet rs = null;
-        // 카트 아이템 + 상품 테이블 조인해서 이름과 가격, 이미지를 가져옴
-        String sql = "SELECT ci.*, p.product_name, p.price, p.product_image " +
-                     "FROM CART c " +
-                     "JOIN CART_ITEM ci ON c.cart_id = ci.cart_id " +
-                     "JOIN PRODUCT p ON ci.product_id = p.product_id " +
-                     "WHERE c.user_id = ?";
+        int result = 0;
+        String sql;
+        
+        if (isAdd) {
+            sql = "UPDATE CART_ITEM SET quantity = quantity + ? WHERE cart_id = ? AND product_id = ?";
+        } else {
+            sql = "UPDATE CART_ITEM SET quantity = ? WHERE cart_id = ? AND product_id = ?";
+        }
+
         try {
             pstmt = conn.prepareStatement(sql);
-            pstmt.setInt(1, userId);
-            rs = pstmt.executeQuery();
-            while(rs.next()) {
-                CartItem item = new CartItem();
-                item.setCartId(rs.getInt("cart_id"));
-                item.setProductId(rs.getInt("product_id"));
-                item.setQuantity(rs.getInt("quantity"));
-                // 화면용 추가 필드 세팅
-                // item.setProductName(rs.getString("product_name")); 
-                // item.setProductPrice(rs.getInt("price"));
-                // item.setProductImage(rs.getString("product_image"));
-                list.add(item);
-            }
-        } catch (Exception e) {
+            pstmt.setInt(1, quantity);
+            pstmt.setInt(2, cartId);
+            pstmt.setInt(3, productId);
+            result = pstmt.executeUpdate();
+        } catch (SQLException e) {
             e.printStackTrace();
         } finally {
-            JDBCTemplate.close(rs);
-            JDBCTemplate.close(pstmt);
+            close(pstmt);
+        }
+        return result;
+    }
+
+    // 장바구니 아이템 삭제 (DELETE)
+    public int deleteCartItem(Connection conn, int cartId, int productId) {
+        PreparedStatement pstmt = null;
+        int result = 0;
+        String sql = "DELETE FROM CART_ITEM WHERE cart_id = ? AND product_id = ?";
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, cartId);
+            pstmt.setInt(2, productId);
+            result = pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            close(pstmt);
+        }
+        return result;
+    }
+    
+    // 장바구니 전체 비우기 (DELETE ALL)
+    public int clearCartItems(Connection conn, int cartId) {
+        PreparedStatement pstmt = null;
+        int result = 0;
+        String sql = "DELETE FROM CART_ITEM WHERE cart_id = ?";
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, cartId);
+            result = pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            close(pstmt);
+        }
+        return result;
+    }
+
+    // ==========================================================
+    // 3. 목록 조회 (SELECT JOIN)
+    // ==========================================================
+    
+    // 장바구니 목록 조회 (상품 정보 포함)
+    public List<CartItem> selectCartItems(Connection conn, int cartId) {
+        List<CartItem> list = new ArrayList<>();
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        // CART_ITEM 테이블과 PRODUCT 테이블을 조인해서 필요한 정보를 한 번에 가져옵니다.
+        String sql = "SELECT C.product_id, C.quantity, "
+                   + "       P.product_name, P.price, P.product_image "
+                   + "FROM CART_ITEM C "
+                   + "JOIN PRODUCT P ON C.product_id = P.product_id "
+                   + "WHERE C.cart_id = ? "
+                   + "ORDER BY C.product_id ASC";
+
+        try {
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, cartId);
+            rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                // VO의 전체 생성자(조회용)를 사용하여 객체 생성
+                // (순서: cartId, productId, quantity, name, price, image)
+                list.add(new CartItem(
+                    cartId,
+                    rs.getInt("product_id"),
+                    rs.getInt("quantity"),
+                    rs.getString("product_name"),
+                    rs.getInt("price"),
+                    rs.getString("product_image")
+                ));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            close(rs);
+            close(pstmt);
         }
         return list;
+    }
+
+    // 자원 반납
+    private void close(AutoCloseable resource) {
+        try {
+            if (resource != null) resource.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

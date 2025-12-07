@@ -23,7 +23,7 @@
 </header>
 <script>
 	function checkLoginStatus() {		
-	    fetch("${pageContext.request.contextPath}/login") 
+	    fetch("${pageContext.request.contextPath}/user/login") 
 	    .then(response => {
 	        if (response.ok){
 	            return response.json(); 
@@ -48,7 +48,7 @@
 	async function handleLogout(e) {
 	    e.preventDefault();
 	    
-	    fetch("${pageContext.request.contextPath}/logout")
+	    fetch("${pageContext.request.contextPath}/user/logout")
 	    .then(response => {
 	    	if (response.ok) {
 	            console.log('로그아웃 성공');
