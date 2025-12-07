@@ -71,9 +71,13 @@
         </configuration>
       </plugin>
       <plugin>
-        <artifactId>maven-war-plugin</artifactId>
-        <version>3.3.2</version>
-      </plugin>
+	      <artifactId>maven-war-plugin</artifactId>
+	      <version>3.3.2</version>
+	      <configuration>
+	          <failOnMissingWebXml>false</failOnMissingWebXml>
+	          <webXmlVersion>6.0</webXmlVersion> 
+	      </configuration>
+	  </plugin>
     </plugins>
   </build>
 </project>

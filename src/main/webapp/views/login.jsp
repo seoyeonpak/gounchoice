@@ -53,7 +53,6 @@
             })
             .then(async response => {
                 if (response.status === 200) {
-                    alert("로그인 성공!");
                     window.location.href = "../index.jsp"; 
                 } else if (response.status === 400) {
                     const errorData = await response.json();

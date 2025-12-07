@@ -8,7 +8,6 @@ public class Rating {
 	
     public Rating() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
 
 	public Rating(int productId, String aspect, double averageScore, int reviewCount) {

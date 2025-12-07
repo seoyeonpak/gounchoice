@@ -2,28 +2,69 @@ package model.service;
 
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import common.JDBCTemplate;
 import model.dao.ProductDAO;
 import model.vo.Product;
+import model.vo.Rating;
 
 public class ProductService {
     
     private ProductDAO productDao = new ProductDAO();
 
-    // 상품 검색 서비스
-    public ArrayList<Product> searchProduct(String keyword) {
-        // 1. 커넥션 생성
+    public List<Product> searchProducts(Map<String, Object> filterParams) {
         Connection conn = JDBCTemplate.getConnection();
         
-        // 2. DAO 호출
-        ArrayList<Product> list = productDao.searchByName(conn, keyword);
+        if (filterParams.containsKey("category")) {
+            String[] categoryNames = (String[]) filterParams.get("category");
+
+            List<Integer> categoryIds = productDao.getCategoryIdsByNames(conn, categoryNames);
+            
+            if (categoryIds.isEmpty() && categoryNames.length > 0) {
+                JDBCTemplate.close(conn);
+                return new ArrayList<>(); 
+            }
+
+            filterParams.put("category", categoryIds); 
+        }
         
-        // 3. 자원 반납 (SELECT는 커밋/롤백 불필요)
+        ArrayList<Product> list = productDao.searchByFilters(conn, filterParams);
+        
         JDBCTemplate.close(conn);
         
         return list;
     }
     
-    // 카테고리별 조회, 상세 조회 등도 같은 패턴으로 추가...
+    public Map<String, Object> getProductDetailData(int productId) throws Exception {
+        Connection conn = JDBCTemplate.getConnection();
+        
+        Product product = productDao.getProductDetail(conn, productId);
+        
+        if (product == null) {
+            JDBCTemplate.close(conn);
+            return null;
+        }
+        
+        List<Rating> ratingDetails = productDao.getRatingDetails(conn, productId);
+        
+        product.setRatingDetail(ratingDetails);
+        
+        JDBCTemplate.close(conn);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("productId", product.getProductId());
+        response.put("productName", product.getProductName());
+        response.put("productDescription", product.getProductDescription());
+        response.put("price", product.getPrice());
+        response.put("image", product.getProductImage());
+        response.put("stock", product.getStockQuantity());
+        response.put("reviewCount", product.getReviewCount());
+        response.put("meanRating", product.getMeanRating());
+        response.put("ratingDetail", product.getRatingDetail());
+        
+        return response;
+    }
 }

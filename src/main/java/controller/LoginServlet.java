@@ -70,4 +70,38 @@ public class LoginServlet extends HttpServlet {
         // 5. JSON 응답 전송
         mapper.writeValue(response.getWriter(), responseMap);
     }
+    
+ // GET 요청 처리 (추가: 로그인 상태 확인 로직)
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        
+        // 1. 기본 설정 (JSON 응답, 인코딩)
+        response.setContentType("application/json; charset=UTF-8");
+        ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> responseMap = new HashMap<>();
+
+        // 2. 세션에서 로그인 사용자 정보 확인
+        HttpSession session = request.getSession(false); // 세션이 없으면 새로 만들지 않음
+        Users loginUser = (session != null) ? (Users) session.getAttribute("loginUser") : null;
+
+        if (loginUser != null) {
+            // [성공] 로그인 상태 (Status 200)
+            response.setStatus(HttpServletResponse.SC_OK); // 200 OK
+            // 사용자 이름만 JSP로 반환 (민감 정보 제외)
+            responseMap.put("name", loginUser.getName()); // Users 객체에 getUserName()이 있다고 가정
+            
+            // 만약 Users 객체 자체를 JSON으로 보내야 한다면 아래처럼 사용
+            // responseMap.put("user", loginUser);
+            
+        } 
+	    else {
+	        // [실패] 로그아웃 상태 (401 Unauthorized: 인증 정보가 없음)
+	        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
+	        responseMap.put("status", 401);
+	        responseMap.put("code", "NOT_LOGGED_IN");
+	        responseMap.put("message", "로그인된 사용자 정보가 없습니다.");
+	    }
+        
+        // 3. JSON 응답 전송
+        mapper.writeValue(response.getWriter(), responseMap);
+    }
 }
