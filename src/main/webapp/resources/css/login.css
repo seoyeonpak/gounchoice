@@ -14,27 +14,6 @@ body {
     flex-direction: column;
 }
 
-header {
-    width: 100%;
-    background-color: #B1907F;
-    padding: 10px 40px;
-    display: flex;
-    align-items: center;
-    height: 100px;
-}
-
-.logo-area {
-    display: flex;
-    align-items: center;
-    height: 100%;
-}
-
-.logo-img {
-    height: 150px;
-    width: auto;
-    object-fit: contain;
-}
-
 .container {
     flex: 1;
     display: flex;

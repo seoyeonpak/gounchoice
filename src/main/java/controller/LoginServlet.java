@@ -87,7 +87,10 @@ public class LoginServlet extends HttpServlet {
             // [성공] 로그인 상태 (Status 200)
             response.setStatus(HttpServletResponse.SC_OK); // 200 OK
             // 사용자 이름만 JSP로 반환 (민감 정보 제외)
-            responseMap.put("name", loginUser.getName()); // Users 객체에 getUserName()이 있다고 가정
+            responseMap.put("name", loginUser.getName());
+            responseMap.put("email", loginUser.getEmail());
+            responseMap.put("phoneNumber", loginUser.getPhoneNumber());
+            responseMap.put("address", loginUser.getAddress());
             
             // 만약 Users 객체 자체를 JSON으로 보내야 한다면 아래처럼 사용
             // responseMap.put("user", loginUser);

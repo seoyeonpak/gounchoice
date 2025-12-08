@@ -8,11 +8,7 @@
     <link rel="icon" type="image/x-icon" href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
 <body>
-    <header>
-        <div class="logo-area">
-             <img src="${pageContext.request.contextPath}/resources/images/logo.png" alt="고운선택" class="logo-img">
-        </div>
-    </header>
+    <%@ include file="common/header_simple.jsp" %>
 
     <div class="container">
         <form id="loginForm">

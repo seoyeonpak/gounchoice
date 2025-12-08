@@ -8,167 +8,293 @@
     <link rel="icon" type="image/x-icon" href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
 <body>
-    <header>
-        <div class="logo-area">
-             <img src="${pageContext.request.contextPath}/resources/images/logo.png" alt="고운선택" class="logo-img">
-        </div>
-    </header>
+    <%@ include file="common/header_simple.jsp" %>
 
     <div class="container">
-        
-        <div class="form-box">
-            <div class="info-row">
+        <div class="mypage-box">
+            <div class="info-row" data-field="email"> 
                 <div class="info-label">
                     <img src="${pageContext.request.contextPath}/resources/images/email.png" alt="이메일" class="email-img">
                     <span>이메일</span>
                 </div>
-                <div class="info-value"></div>
-                <button type="button" class="btn-edit" onclick="openModal('email', '', '이메일')">수정</button>
+                <div class="info-value" id="userEmail"></div> 
+                <button type="button" class="btn-edit" data-field="email">수정</button>
             </div>
             
-            <div class="info-row">
+            <div class="info-row" data-field="password">
                 <div class="info-label">
                     <img src="${pageContext.request.contextPath}/resources/images/password.png" alt="비밀번호" class="password-img">
                     <span>비밀번호</span>
                 </div>
-                <div class="info-value">
-                </div>
-                <button type="button" class="btn-edit" onclick="openModal('password', '', '비밀번호')">수정</button>
+                <div class="info-value">**********</div>
+                <button type="button" class="btn-edit" data-field="password">수정</button>
             </div>
         </div>
 
-        <div class="form-box">
-            <div class="info-row">
+        <div class="mypage-box">
+            <div class="info-row" data-field="name">
                 <div class="info-label">
                     <img src="${pageContext.request.contextPath}/resources/images/user.png" alt="이름" class="name-img">
                     <span>이름</span>
                 </div>
-                <div class="info-value"></div>
-                <button type="button" class="btn-edit" onclick="openModal('name', '', '이름')">수정</button>
+                <div class="info-value" id="userName"></div> 
+                <button type="button" class="btn-edit" data-field="name">수정</button>
             </div>
             
-            <div class="info-row">
+            <div class="info-row" data-field="phone">
                 <div class="info-label">
                    <img src="${pageContext.request.contextPath}/resources/images/phonenumber.png" alt="전화번호" class="phoneNumber-img">
                     <span>전화번호</span>
                 </div>
-                <div class="info-value"></div>
-                <button type="button" class="btn-edit" onclick="openModal('phone', '', '전화번호')">수정</button>
+                <div class="info-value" id="userPhone"></div> 
+                <button type="button" class="btn-edit" data-field="phone">수정</button>
             </div>
 
-            <div class="info-row">
+            <div class="info-row" data-field="address">
                 <div class="info-label">
                     <img src="${pageContext.request.contextPath}/resources/images/address.png" alt="주소" class="address-img">
                     <span>주소</span>
                 </div>
-                <div class="info-value"></div>
-                <button type="button" class="btn-edit" onclick="openModal('address', '', '주소')">수정</button>
+                <div class="info-value" id="userAddress"></div> 
+                <button type="button" class="btn-edit" data-field="address">수정</button>
             </div>
         </div>
-
     </div>
     
     <div id="editModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
-            <div class="modal-header" id="modalTitle"></div>
-            
-            <form id="editForm" action="/api/updateUserInfo" method="post">
-                <div id="modalBody">
-                    </div>
+            <div class="modal-header"></div> 
+            <form id="editForm" action="#" method="post">
+                <div id="modalInputs"></div> 
                 <input type="hidden" name="field" id="hiddenField">
                 <button type="submit" class="btn-update">저장</button>
             </form>
         </div>
     </div>
-
     <script>
         const modal = document.getElementById('editModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalBody = document.getElementById('modalBody');
+        const modalHeader = modal.querySelector('.modal-header');
+        const modalInputs = document.getElementById('modalInputs');
         const hiddenField = document.getElementById('hiddenField');
         const editForm = document.getElementById('editForm');
+        const contextPath = "${pageContext.request.contextPath}";
 
-        function openModal(field, currentValue, title) {
-            // 팝업 제목 설정
-            modalTitle.innerText = title + " 수정";
+        let loggedInUser = {};
+
+        async function fetchUserInfo() {
+            try {
+                const response = await fetch(contextPath + "/user/login"); 
+                
+                if (response.status === 401) {
+                    alert("로그인이 필요합니다.");
+                    window.location.href = contextPath + "/views/login.jsp";
+                    return;
+                }
+
+                if (response.ok) {
+                    const userData = await response.json();
+                    if (!userData.name) {
+                        throw new Error("유저 정보를 찾을 수 없습니다.");
+                    }
+                    loggedInUser = userData; 
+                    renderUserInfo(userData);
+                } else {
+                    throw new Error("서버 오류로 유저 정보를 불러올 수 없습니다.");
+                }
+            } catch (error) {
+                console.error('유저 정보 로딩 오류:', error);
+            }
+        }
+
+        function renderUserInfo(user) {
+            document.getElementById('userEmail').textContent = user.email || '';
+            document.getElementById('userName').textContent = user.name || '';
+            document.getElementById('userPhone').textContent = user.phoneNumber || '';
+            document.getElementById('userAddress').textContent = user.address || '';
+        }
+
+        function openModal(field) {
+            const row = document.querySelector(`.info-row[data-field="\${field}"]`);
+            
+            if (!row) {
+                console.error("Error: Could not find info-row for field: " + field);
+                return;
+            }
+        
+            let label = row.querySelector('.info-label span').textContent;
+
+            let dataKeyMap = {
+                'email': 'email',
+                'name': 'name',
+                'phone': 'phoneNumber', 
+                'address': 'address',
+                'password': null
+            };
+            
+            let dataKey = dataKeyMap[field];
+            let currentValue = (dataKey && loggedInUser[dataKey]) ? loggedInUser[dataKey] : '';
+        
+            modalHeader.textContent = label + " 수정";
             hiddenField.value = field;
             
-            let htmlContent = '';
-
-            // 필드에 따라 폼 내용 동적 생성
+            modalInputs.innerHTML = '';
+            
             if (field === 'password') {
-                // 비밀번호는 현재값 표시 없이 새 비밀번호와 확인 필드 제공 (마이페이지-5.png 참고)
-                htmlContent = `
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="newValue" class="input-field" placeholder="새 비밀번호" required>
-                    </div>
-                    <div class="input-group">
-                        <i class="fa-solid fa-lock"></i>
-                        <input type="password" name="confirmValue" class="input-field" placeholder="비밀번호 확인" required>
-                    </div>
-                `;
-            } else if (field === 'email') {
-                htmlContent = `
-                    <div class="input-group">
-                        <i class="fa-regular fa-envelope"></i>
-                        <input type="email" name="newValue" class="input-field" placeholder="${title}" value="${currentValue}" required>
-                    </div>
-                `;
-            } else if (field === 'name') {
-                 htmlContent = `
-                    <div class="input-group">
-                        <i class="fa-regular fa-user"></i>
-                        <input type="text" name="newValue" class="input-field" placeholder="${title}" value="${currentValue}" required>
-                    </div>
-                `;
-            } else if (field === 'phone') {
-                htmlContent = `
-                    <div class="input-group">
-                        <i class="fa-solid fa-mobile-screen"></i>
-                        <input type="tel" name="newValue" class="input-field" placeholder="${title}" value="${currentValue}" required>
-                    </div>
-                `;
-            } else if (field === 'address') {
-                htmlContent = `
-                    <div class="input-group">
-                        <i class="fa-solid fa-house"></i>
-                        <input type="text" name="newValue" class="input-field" placeholder="${title}" value="${currentValue}" required>
-                    </div>
-                `;
+                modalInputs.appendChild(createInputField('oldPassword', 'password', '현재 비밀번호 확인', true, 'password.png'));
+                modalInputs.appendChild(createInputField('newPassword', 'password', '새 비밀번호', true, 'password.png'));
+                modalInputs.appendChild(createInputField('confirmPassword', 'password', '새 비밀번호 확인', true, 'password.png'));
+                
+            } else {
+                let nameMap = {
+                    'email': 'email', 
+                    'name': 'name',
+                    'phone': 'phoneNumber', 
+                    'address': 'address'
+                };
+                let iconMap = {
+                        'email': 'email.png',
+                        'name': 'user.png',
+                        'phone': 'phonenumber.png',
+                        'address': 'address.png'
+                    };
+                let type = (field === 'email') ? 'email' : (field === 'phone' ? 'tel' : 'text');
+                
+                if (field === 'phone') {
+                    let divGroup = createInputField(nameMap[field], type, label, true, iconMap[field], currentValue);
+                    
+                    let input = divGroup.querySelector('input');
+                    input.maxLength = 13;
+                    
+                    const autoHyphen = (target) => {
+                        target.value = target.value
+                         .replace(/[^0-9]/g, '')
+                         .replace(/^(\d{0,3})(\d{0,4})(\d{0,4})$/g, "$1-$2-$3").replace(/(\-{1,2})$/g, "");
+                    };
+                    
+                    input.addEventListener('input', (e) => autoHyphen(e.target));
+                    
+                    modalInputs.appendChild(divGroup);
+                } else {
+                    modalInputs.appendChild(createInputField(nameMap[field], type, label, true, iconMap[field], currentValue));
+                }
             }
-
-            modalBody.innerHTML = htmlContent;
+            
             modal.style.display = 'block';
+        }
+
+        function createInputField(name, type, placeholder, required, iconFileName, value = '') {
+            let divGroup = document.createElement('div');
+            divGroup.className = 'input-group';
+            
+            let imgIcon = document.createElement('img');
+            imgIcon.src = `\${contextPath}/resources/images/\${iconFileName}`;
+            imgIcon.alt = placeholder;
+            
+            imgIcon.style.width = '24px';
+            imgIcon.style.height = '24px';
+            imgIcon.style.marginRight = '10px';
+            imgIcon.style.opacity = '0.5';
+
+            divGroup.appendChild(imgIcon);
+            
+            let input = document.createElement('input');
+            input.type = type;
+            input.name = name;
+            input.className = 'input-field';
+            input.placeholder = placeholder;
+            if (required) input.required = true;
+            if (value) input.value = value;
+            
+            divGroup.appendChild(input);
+            return divGroup;
         }
 
         function closeModal() {
             modal.style.display = 'none';
-            // 폼 내용 초기화 (선택 사항)
-            modalBody.innerHTML = '';
+            modalInputs.innerHTML = '';
             hiddenField.value = '';
         }
 
-        // 팝업 외부 클릭 시 닫기
         window.onclick = function(event) {
             if (event.target == modal) {
                 closeModal();
             }
         }
         
-        // 폼 제출 이벤트 처리 (AJAX 사용 권장)
-        editForm.addEventListener('submit', function(e) {
+        document.querySelectorAll('.btn-edit').forEach(button => {
+            button.addEventListener('click', function() {
+                const field = this.getAttribute('data-field');
+                if(field) openModal(field);
+            });
+        });
+
+        editForm.addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // 여기에 AJAX (fetch) 코드를 넣어 서버의 'updateUserInfo' API로 데이터를 보냅니다.
-            // 성공 시, 모달을 닫고 페이지를 새로고침하거나 (location.reload())
-            // 변경된 값을 main 페이지에 직접 반영합니다.
+            const field = hiddenField.value;
+            let urlSuffix = field.charAt(0).toUpperCase() + field.slice(1);
+            if (field === 'phone') urlSuffix = 'PhoneNumber'; 
             
-            alert(hiddenField.value + " 정보 수정 요청됨 (실제 저장 로직 필요)");
-            closeModal();
-        });
-    </script>
+            const updateUrl = contextPath + "/user/reset" + urlSuffix;
+            
+            const formData = new FormData(editForm);
+            let requestBody = {};
+            
+            if (field === 'password') {
+                const newPw = formData.get('newPassword');
+                const confirmPw = formData.get('confirmPassword');
+                if (newPw !== confirmPw) {
+                    alert("새 비밀번호가 일치하지 않습니다.");
+                    return;
+                }
+                requestBody = {
+                    oldPassword: formData.get('oldPassword'),
+                    newPassword: newPw
+                };
+            } else {
+                let key;
+                let value;
+                
+                if (field === 'phone') {
+                    key = 'phonenumber'; 
+                    value = formData.get('phoneNumber');
+                } else if (field === 'email') {
+                    key = 'email'; 
+                    value = formData.get('email');
+                } else {
+                    key = field;
+                    value = formData.get(field);
+                }
+                
+                requestBody[key] = value;
+            }
+            
+            try {
+                const response = await fetch(updateUrl, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const responseData = await response.json();
 
+                if (response.ok && responseData.status === 'success') {
+                    alert(responseData.message);
+                    closeModal();
+                    fetchUserInfo(); 
+                } else {
+                    alert("수정 실패: " + (responseData.message || "알 수 없는 오류"));
+                }
+            } catch (error) {
+                console.error('AJAX 업데이트 오류:', error);
+                alert("서버 통신 중 오류가 발생했습니다.");
+            }
+        });
+
+        window.onload = () => {
+            fetchUserInfo(); 
+        };
+    </script>
 </body>
 </html>
