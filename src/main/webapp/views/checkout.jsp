@@ -76,10 +76,27 @@
 	    let defaultUserAddress = '';
 	    
 	    const urlParams = new URLSearchParams(window.location.search);
-        const selectedItemsParam = urlParams.get('items');
-        let selectedItemIds = [];
-        if (selectedItemsParam) {
-            selectedItemIds = selectedItemsParam.split(',').map(Number);
+	    const mode = urlParams.get('mode');
+	    
+	    let selectedItemIds = [];
+        let directProductId = null;
+        let directQuantity = 1;
+
+        if (mode === 'direct') {
+            const pId = urlParams.get('productId');
+            const qty = urlParams.get('quantity');
+            
+            if (pId) {
+                directProductId = parseInt(pId);
+            }
+            if (qty) {
+                directQuantity = parseInt(qty);
+            }
+        } else {
+            const itemsParam = urlParams.get('items');
+            if (itemsParam) {
+                selectedItemIds = itemsParam.split(',').map(Number);
+            }
         }
 	    
 	    const deliveryAddressTextarea = document.getElementById('deliveryAddress');
@@ -133,6 +150,71 @@
             tr.appendChild(td);
             listEl.appendChild(tr);
         }
+        
+        async function loadDirectBuyItem() {
+            const listEl = document.getElementById("checkoutList");
+            const totalPriceEl = document.getElementById("finalTotalPrice");
+            
+            if (!directProductId) {
+                alert("잘못된 접근입니다. 상품 정보가 없습니다.");
+                location.href = contextPath + "/index.jsp";
+                return;
+            }
+            
+            displayLoadingMessage(listEl);
+
+            try {
+                const response = await fetch(contextPath + "/product/detail?productId=" + directProductId);
+                
+                if (!response.ok) {
+                    throw new Error("상품 정보를 불러올 수 없습니다.");
+                }
+                
+                let product = await response.json();
+                
+                listEl.innerHTML = '';
+                const totalItemPrice = product.price * directQuantity;
+                
+                const tr = document.createElement("tr");
+                
+                const td1 = document.createElement("td");
+                const infoDiv = document.createElement("div");
+                infoDiv.className = "product-info-cell";
+                const img = document.createElement("img");
+                img.src = product.image;
+                img.alt = product.productName;
+                img.className = "checkout-image";
+                const nameDiv = document.createElement("div");
+                nameDiv.className = "item-name";
+                nameDiv.textContent = product.productName;
+                infoDiv.appendChild(img);
+                infoDiv.appendChild(nameDiv);
+                td1.appendChild(infoDiv);
+                
+                const td2 = document.createElement("td");
+                td2.textContent = product.price.toLocaleString() + '원';
+                
+                const td3 = document.createElement("td");
+                td3.textContent = directQuantity;
+                
+                const td4 = document.createElement("td");
+                td4.textContent = totalItemPrice.toLocaleString() + '원';
+                
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                tr.appendChild(td4);
+
+                listEl.appendChild(tr);
+                totalPriceEl.textContent = totalItemPrice.toLocaleString();
+                
+                cartData = [product]; 
+
+            } catch (error) {
+                console.error("바로 구매 상품 로드 오류:", error);
+                alert("상품 정보를 불러오는 데 실패했습니다.");
+            }
+       }
 
 	    async function loadCheckoutItems() {
 	        const listEl = document.getElementById("checkoutList");
@@ -332,23 +414,32 @@
 	        }
 	
 	        if (!cartData || cartData.length === 0) {
-	             alert("주문할 상품이 없습니다. 장바구니 페이지로 돌아갑니다.");
-	             location.href = contextPath + "/views/cart.jsp"; 
+	             alert("주문할 상품이 없습니다.");
+                if (mode !== 'direct') location.href = contextPath + "/views/cart.jsp"; 
 	             return false;
 	        }
 	        
 	        if (!confirm("총 " + document.getElementById('finalTotalPrice').textContent + "원을 결제하고 주문을 완료하시겠습니까?")) {
 	            return false;
 	        }
+	        
+	        let apiUrl = contextPath + "/order/checkout";
+            let requestBody = { address: address, productIds: selectedItemIds };
+
+            if (mode === 'direct') {
+                apiUrl = contextPath + "/order/create";
+                requestBody = {
+                    productId: parseInt(directProductId),
+                    quantity: parseInt(directQuantity),
+                    address: address
+                };
+            }
 
 	        try {
-	            const orderResponse = await fetch(contextPath + "/order/checkout", {
+	            const orderResponse = await fetch(apiUrl, {
 	                method: 'POST',
 	                headers: { 'Content-Type': 'application/json' },
-	                body: JSON.stringify({ 
-	                    "address": address,
-	                    "productIds": selectedItemIds
-	                }) 
+	                body: JSON.stringify(requestBody)
 	            });
 
 	            if (!orderResponse.ok) {
@@ -381,6 +472,8 @@
 	   		document.getElementById('cardNumber').addEventListener('input', function() { formatCardNumber(this); });
             document.getElementById('expiryDate').addEventListener('input', function() { formatExpiryDate(this); });
             document.getElementById('cvc').addEventListener('input', function() { formatCVC(this); });
+            
+            const loadItemsPromise = (mode === 'direct') ? loadDirectBuyItem() : loadCheckoutItems();
             
             Promise.all([
                 loadDefaultAddress(),

@@ -431,7 +431,7 @@
 	        
 			console.log("주문 결제 페이지(checkout.jsp)로 이동합니다. Items: " + selectedIds);
             
-            location.href = "${pageContext.request.contextPath}/views/checkout.jsp?items=" + selectedIds; 
+            location.href = "${pageContext.request.contextPath}/views/checkout.jsp?mode=indirect&items=" + selectedIds; 
 	    }
 	    
 	    document.addEventListener('DOMContentLoaded', function() {
