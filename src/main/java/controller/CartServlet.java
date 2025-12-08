@@ -3,7 +3,9 @@ package controller;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -16,18 +18,15 @@ import jakarta.servlet.http.HttpSession;
 import model.service.CartService;
 import model.vo.Users;
 
-// 명세서에 있는 5개 URL 매핑
 @WebServlet({"/cart/add", "/cart/list", "/cart/update", "/cart/delete", "/cart/clear"})
 public class CartServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
-    // 조회는 GET
     @Override 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException { 
         processRequest(req, resp); 
     }
     
-    // 추가, 수정, 삭제, 비우기 모두 POST
     @Override 
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException { 
         processRequest(req, resp); 
@@ -55,9 +54,6 @@ public class CartServlet extends HttpServlet {
         CartService service = new CartService();
         
         try {
-            // ==========================================
-            // [GET] 장바구니 목록 조회
-            // ==========================================
             if ("/cart/list".equals(path)) {
                 Map<String, Object> result = service.getCartList(userId);
                 response.setStatus(HttpServletResponse.SC_OK);
@@ -65,23 +61,20 @@ public class CartServlet extends HttpServlet {
                 return;
             }
 
-            // ==========================================
-            // [POST] 데이터 처리 (add, update, delete, clear)
-            // ==========================================
-            
-            // 1. JSON Body 읽기
             BufferedReader reader = request.getReader();
-            // 빈 바디({})가 올 수도 있으므로 예외처리
             Map<String, Object> requestData = new HashMap<>();
             try {
                  requestData = mapper.readValue(reader, Map.class);
-            } catch(Exception e) { /* Body가 비어있을 수 있음 (clear) */ }
+            } catch(Exception e) { /* Body가 비어있을 수 있음 */ }
             
-            // 파라미터 파싱
-            Object pidObj = requestData.get("productid"); // 명세서 기준 소문자
-            if (pidObj == null) pidObj = requestData.get("productId"); // 카멜케이스 호환
             
-            int productId = (pidObj != null) ? Integer.parseInt(pidObj.toString()) : 0;
+            Object pidObj = requestData.get("productid");
+            if (pidObj == null) pidObj = requestData.get("productId");
+            
+            int productId = 0;
+            if (pidObj != null && !(pidObj instanceof List)) {
+                productId = Integer.parseInt(pidObj.toString());
+            }
             
             Object qtyObj = requestData.get("quantity");
             int quantity = (qtyObj != null) ? Integer.parseInt(qtyObj.toString()) : 1;
@@ -91,37 +84,61 @@ public class CartServlet extends HttpServlet {
 
             switch (path) {
                 case "/cart/add": 
-                    // 상품 담기
                     if(productId == 0) throw new Exception("상품 정보 없음");
                     result = service.addToCart(userId, productId, quantity);
                     message = "장바구니에 담았습니다.";
                     break;
                     
                 case "/cart/update": 
-                    // 수량 수정 (POST)
                     if(productId == 0) throw new Exception("상품 정보 없음");
                     result = service.updateQuantity(userId, productId, quantity);
                     message = "수량이 변경되었습니다.";
                     break;
                     
                 case "/cart/delete": 
-                    // 상품 삭제 (POST)
-                    if(productId == 0) throw new Exception("상품 정보 없음");
-                    result = service.deleteCartItem(userId, productId);
-                    message = "삭제되었습니다.";
+                	if (pidObj == null) throw new Exception("상품 정보 없음");
+
+                    if (pidObj instanceof Integer || pidObj instanceof String || pidObj instanceof Double) {
+                        productId = Integer.parseInt(pidObj.toString());
+                        result = service.deleteCartItem(userId, productId);
+                        
+                    } else if (pidObj instanceof java.util.List) {
+                        @SuppressWarnings("unchecked")
+                        List<Object> productIdsObj = (List<Object>) pidObj;
+                        
+                        List<Integer> productIds = productIdsObj.stream()
+                            .map(idObj -> {
+                                if (idObj instanceof Integer) return (Integer) idObj;
+                                if (idObj instanceof Double) return ((Double) idObj).intValue();
+                                return Integer.parseInt(idObj.toString());
+                            })
+                            .collect(Collectors.toList());
+                            
+                        result = service.deleteSelectedCartItems(userId, productIds); 
+                        
+                    } else {
+                        throw new Exception("잘못된 상품 ID 형식입니다.");
+                    }
+                    
+                    message = "삭제되었습니다. (총 " + result + "개)";
                     break;
                     
                 case "/cart/clear":
-                    // 전체 비우기 (POST, 파라미터 없음)
                     result = service.clearCart(userId);
                     message = "장바구니를 비웠습니다.";
                     break;
             }
 
             if (result > 0) {
+            	Map<String, Object> updatedCartInfo = service.getCartList(userId);
+            	
                 response.setStatus(HttpServletResponse.SC_OK);
                 responseMap.put("status", "success");
                 responseMap.put("message", message);
+                
+                if (updatedCartInfo != null && updatedCartInfo.containsKey("totalOrderPrice")) {
+                    responseMap.put("totalOrderPrice", updatedCartInfo.get("totalOrderPrice"));
+                }
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
                 responseMap.put("status", "fail");
