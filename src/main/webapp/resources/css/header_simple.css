@@ -1,63 +1,65 @@
 .header-container {
-    width: 100%;
-    background-color: #B1907F; 
-    padding: 10px 40px;
-    height: 100px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    display: flex;
-    justify-content: center; 
+	width: 100%;
+	background-color: #B1907F;
+	padding: 10px 40px;
+	height: 100px;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+	display: flex;
+	justify-content: center;
 }
 
 .top-header-wrapper {
-    width: 100%;
-    max-width: 1200px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between; 
-    position: relative; 
+	width: 100%;
+	max-width: 1200px;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	position: relative;
 }
 
 .logo-area {
-    display: flex;
-    align-items: center;
-    height: 100%;
-    position: relative; 
-    z-index: 2; 
-    flex-shrink: 0; 
-    flex-grow: 0; 
-    flex-basis: auto; 
+	display: flex;
+	align-items: center;
+	height: 100%;
+	position: relative;
+	z-index: 2;
+	flex-shrink: 0;
+	flex-grow: 0;
+	flex-basis: auto;
 }
 
 .logo-img {
-    height: 150px;
-    width: auto;
-    object-fit: contain;
+	height: 150px;
+	width: auto;
+	object-fit: contain;
 }
 
 .utility-area {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end; 
-    flex-shrink: 0; 
-    flex-grow: 0;
-    flex-basis: auto; 
-    gap: 5px; 
-    z-index: 2; 
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	flex-shrink: 0;
+	flex-grow: 0;
+	flex-basis: auto;
+	gap: 5px;
+	z-index: 2;
 }
 
-.utility-area a, .utility-area button {
-    background-color: #f1ede5;
-    border: 1px solid #9c7b69;
-    border-radius: 4px;
-    padding: 6px 10px;
-    font-size: 13px;
-    text-decoration: none;
-    cursor: pointer;
-    color: #4b3832;
-    font-weight: 500;
-    transition: background-color 0.2s;
+.utility-area a,
+.utility-area button {
+	background-color: #f1ede5;
+	border: 1px solid #9c7b69;
+	border-radius: 4px;
+	padding: 6px 10px;
+	font-size: 13px;
+	text-decoration: none;
+	cursor: pointer;
+	color: #4b3832;
+	font-weight: 500;
+	transition: background-color 0.2s;
 }
 
-.utility-area a:hover, .utility-area button:hover {
-    background-color: #e0d8c7;
+.utility-area a:hover,
+.utility-area button:hover {
+	background-color: #e0d8c7;
 }

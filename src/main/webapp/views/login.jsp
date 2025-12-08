@@ -1,34 +1,42 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>고운선택 - 로그인 페이지</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/login.css">
-    <link rel="icon" type="image/x-icon" href="${pageContext.request.contextPath}/resources/images/favicon.png">
+<meta charset="UTF-8">
+<title>고운선택 - 로그인 페이지</title>
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/resources/css/login.css">
+<link rel="icon" type="image/x-icon"
+	href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
 <body>
-    <%@ include file="common/header_simple.jsp" %>
+	<%@ include file="common/header_simple.jsp"%>
 
-    <div class="container">
-        <form id="loginForm">
-            <div class="login-box">
-                <div class="input-group">
-                	<img src="${pageContext.request.contextPath}/resources/images/email.png" alt="이메일" class="email-img">
-                    <input type="email" id="email" name="email" class="input-field" placeholder="이메일" required>
-                </div>
-                
-                <div class="input-group">
-                    <img src="${pageContext.request.contextPath}/resources/images/password.png" alt="비밀번호" class="password-img">
-                    <input type="password" id="password" name="password" class="input-field" placeholder="비밀번호" required>
-                </div>
-            </div>
+	<div class="container">
+		<form id="loginForm">
+			<div class="login-box">
+				<div class="input-group">
+					<img
+						src="${pageContext.request.contextPath}/resources/images/email.png"
+						alt="이메일" class="email-img"> <input type="email" id="email"
+						name="email" class="input-field" placeholder="이메일" required>
+				</div>
 
-            <button type="submit" class="btn-submit">로그인</button>
-        </form>
-    </div>
+				<div class="input-group">
+					<img
+						src="${pageContext.request.contextPath}/resources/images/password.png"
+						alt="비밀번호" class="password-img"> <input type="password"
+						id="password" name="password" class="input-field"
+						placeholder="비밀번호" required>
+				</div>
+			</div>
 
-    <script>
+			<button type="submit" class="btn-submit">로그인</button>
+		</form>
+	</div>
+
+	<script>
         document.getElementById('loginForm').addEventListener('submit', function(e) {
             e.preventDefault();
 

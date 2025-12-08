@@ -1,14 +1,14 @@
 package model.vo;
 
 public class Users {
-    private int userId;         // user_id
-    private String name;        // name
-    private String email;       // email
-    private String password;    // password
-    private String phoneNumber; // phone_number
-    private String address;     // address
-	
-    public Users() {
+	private int userId; // user_id
+	private String name; // name
+	private String email; // email
+	private String password; // password
+	private String phoneNumber; // phone_number
+	private String address; // address
+
+	public Users() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -76,5 +76,5 @@ public class Users {
 		return "Users [userId=" + userId + ", name=" + name + ", email=" + email + ", password=" + password
 				+ ", phoneNumber=" + phoneNumber + ", address=" + address + "]";
 	}
-    
+
 }

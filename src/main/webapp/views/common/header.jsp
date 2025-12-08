@@ -1,25 +1,32 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <head>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/header.css">
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/resources/css/header.css">
 </head>
 <header class="header-container">
-    <div class="top-header-wrapper">
-        <a href="${pageContext.request.contextPath}/index.jsp" class="logo-area" id="logoLink">
-        	<img src="${pageContext.request.contextPath}/resources/images/logo.png" alt="고운선택" class="logo-img">
-    	</a>
-        
-        <div class="search-area">
-            <form class="search-form" action="${pageContext.request.contextPath}/index.jsp" method="get" id="searchForm">
-                <input type="text" id="search" name="keyword" placeholder="상품 검색" class="search-input">
-                <button type="submit" class="search-button">검색</button>
-            </form>
-        </div>
-        
-        <div class="utility-area" id="utilityArea">
-            <a href="${pageContext.request.contextPath}/views/login.jsp">로그인</a>
-            <a href="${pageContext.request.contextPath}/views/signup.jsp">회원가입</a>
-        </div>
-    </div>
+	<div class="top-header-wrapper">
+		<a href="${pageContext.request.contextPath}/index.jsp"
+			class="logo-area" id="logoLink"> <img
+			src="${pageContext.request.contextPath}/resources/images/logo.png"
+			alt="고운선택" class="logo-img">
+		</a>
+
+		<div class="search-area">
+			<form class="search-form"
+				action="${pageContext.request.contextPath}/index.jsp" method="get"
+				id="searchForm">
+				<input type="text" id="search" name="keyword" placeholder="상품 검색"
+					class="search-input">
+				<button type="submit" class="search-button">검색</button>
+			</form>
+		</div>
+
+		<div class="utility-area" id="utilityArea">
+			<a href="${pageContext.request.contextPath}/views/login.jsp">로그인</a>
+			<a href="${pageContext.request.contextPath}/views/signup.jsp">회원가입</a>
+		</div>
+	</div>
 </header>
 <script>
 	function checkLoginStatus() {		
@@ -35,8 +42,8 @@
 	    })
 	    .then(userData => {
 	        if (userData) {
-	            console.log("로그인 상태 확인 성공:", userData.name);
-	            renderLoggedInMenu(userData.name);
+	            console.log("로그인 상태 확인 성공:", userData.data.name);
+	            renderLoggedInMenu(userData.data.name);
 	        }
 	    })
 	    .catch(error => {

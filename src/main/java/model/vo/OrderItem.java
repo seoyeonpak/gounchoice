@@ -1,13 +1,13 @@
 package model.vo;
 
 public class OrderItem {
-    private int orderId;        // order_id
-    private int productId;      // product_id
-    private int quantity;       // quantity
-    private int orderPrice;     // order_price
-    private String productName; // product_name
-	
-    public OrderItem() {
+	private int orderId; // order_id
+	private int productId; // product_id
+	private int quantity; // quantity
+	private int orderPrice; // order_price
+	private String productName; // product_name
+
+	public OrderItem() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -66,5 +66,5 @@ public class OrderItem {
 		return "OrderItem [orderId=" + orderId + ", productId=" + productId + ", quantity=" + quantity + ", orderPrice="
 				+ orderPrice + ", productName=" + productName + "]";
 	}
-    
+
 }

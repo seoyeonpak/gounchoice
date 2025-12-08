@@ -1,48 +1,53 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>고운선택 - 장바구니 페이지</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/cart.css">
-    <link rel="icon" type="image/x-icon" href="${pageContext.request.contextPath}/resources/images/favicon.png">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<meta charset="UTF-8">
+<title>고운선택 - 장바구니 페이지</title>
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/resources/css/cart.css">
+<link rel="icon" type="image/x-icon"
+	href="${pageContext.request.contextPath}/resources/images/favicon.png">
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
-	<%@ include file="common/header.jsp" %>
+	<%@ include file="common/header.jsp"%>
 
 	<div class="cart-container">
-	    <div class="cart-title">장바구니</div>
-	    <div class="cart-table-box">
-	        <table class="cart-table">
-	            <thead>
-	                <tr>
-	                    <th style="width: 50px;"><input type="checkbox" id="checkAll"></th>
-	                    <th style="width: 50%;">상품정보</th>
-	                    <th style="width: 15%;">구매가</th>
-	                    <th style="width: 15%;">수량</th>
-	                    <th style="width: 10%;"></th> </tr>
-	            </thead>
-	            <tbody id="cartList">
-	                </tbody>
-	        </table>
-	
-	        <div id="emptyMessage" style="text-align:center; color:#777; padding:50px 20px; border-top: 1px solid #eee; display:none;">
-	            장바구니에 담긴 상품이 없습니다.
-	        </div>
-	        
-	        <div class="summary-actions">
-	            <button onclick="deleteSelectedItems()">선택 상품 삭제</button>
-	            <div class="total-price-area">
-	                총 결제 금액: <span id="totalPrice" class="total-price-amount">0원</span>
-	            </div>
-	        </div>
-	    </div>
-	
-	    <div class="order-box">
-	        <button class="order-btn" onclick="goOrder()">주문하기</button>
-	    </div>
+		<div class="cart-title">장바구니</div>
+		<div class="cart-table-box">
+			<table class="cart-table">
+				<thead>
+					<tr>
+						<th style="width: 50px;"><input type="checkbox" id="checkAll"></th>
+						<th style="width: 50%;">상품정보</th>
+						<th style="width: 15%;">구매가</th>
+						<th style="width: 15%;">수량</th>
+						<th style="width: 10%;"></th>
+					</tr>
+				</thead>
+				<tbody id="cartList">
+				</tbody>
+			</table>
+
+			<div id="emptyMessage"
+				style="text-align: center; color: #777; padding: 50px 20px; border-top: 1px solid #eee; display: none;">
+				장바구니에 담긴 상품이 없습니다.</div>
+
+			<div class="summary-actions">
+				<button onclick="deleteSelectedItems()">선택 상품 삭제</button>
+				<div class="total-price-area">
+					총 결제 금액: <span id="totalPrice" class="total-price-amount">0원</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="order-box">
+			<button class="order-btn" onclick="goOrder()">주문하기</button>
+		</div>
 	</div>
 
 	<script>
@@ -115,7 +120,8 @@
 		                }
 		            }
 		
-		            const data = await response.json();
+		            const json = await response.json();
+		            const data = json.data;
 		            const items = data.items || []; 
                     const totalPrice = data.totalOrderPrice || 0;
 		            
@@ -294,8 +300,8 @@
 	
 	            const updatedData = await response.json();
                 
-                if (updatedData.status === 'success' && updatedData.totalOrderPrice !== undefined) {
-                    updateDisplayTotalPrice(updatedData.totalOrderPrice);
+                if (updatedData.data.totalOrderPrice !== undefined) {
+                    updateDisplayTotalPrice(updatedData.data.totalOrderPrice);
                     console.log("수량 변경 및 총액 갱신 성공");
                 } else {
                     console.warn("부분 갱신 실패. 전체 목록 재로딩.");
@@ -335,8 +341,8 @@
                     itemRow.remove();
                 }
                 
-                if (updatedData.status === 'success' && updatedData.totalOrderPrice !== undefined) {
-                    updateDisplayTotalPrice(updatedData.totalOrderPrice);
+                if (updatedData.data.totalOrderPrice !== undefined) {
+                    updateDisplayTotalPrice(updatedData.data.totalOrderPrice);
                     console.log("단일 상품 삭제 및 총액 갱신 성공");
                     
                     if (!document.getElementById("cartList").querySelector("tr")) {
@@ -386,14 +392,14 @@
 	
 	            const updatedData = await response.json();
 
-	            if (updatedData.status === 'success' && updatedData.totalOrderPrice !== undefined) {
+	            if (updatedData.data.totalOrderPrice !== undefined) {
 	                itemsToRemove.forEach(function(item) {
 	                    if (item.row) {
 	                        item.row.remove();
 	                    }
 	                });
 
-	                updateDisplayTotalPrice(updatedData.totalOrderPrice);
+	                updateDisplayTotalPrice(updatedData.data.totalOrderPrice);
 	                console.log("선택 상품 삭제 및 총액 갱신 성공");
 	                
 	                if (!document.getElementById("cartList").querySelector("tr")) {
@@ -414,16 +420,18 @@
 	
 	    
 	    async function goOrder() {
-	        const cartListResponse = await fetch("${pageContext.request.contextPath}/cart/list");
-	        const cartData = await cartListResponse.json();
+			const checkedItems = document.querySelectorAll('input[name="selectedItem"]:checked');
+            
+            if (checkedItems.length === 0) {
+                alert("주문할 상품을 선택해주세요.");
+                return;
+            }
+            
+            const selectedIds = Array.from(checkedItems).map(function(cb) { return cb.value; }).join(",");
 	        
-	        if (!cartData.items || cartData.items.length === 0) {
-	            alert("장바구니가 비어있어 주문할 수 없습니다.");
-	            return;
-	        }
-	        
-	        console.log("주문 결제 페이지(checkout.jsp)로 이동합니다.");
-	        location.href = "${pageContext.request.contextPath}/views/checkout.jsp"; 
+			console.log("주문 결제 페이지(checkout.jsp)로 이동합니다. Items: " + selectedIds);
+            
+            location.href = "${pageContext.request.contextPath}/views/checkout.jsp?items=" + selectedIds; 
 	    }
 	    
 	    document.addEventListener('DOMContentLoaded', function() {

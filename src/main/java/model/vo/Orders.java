@@ -3,16 +3,16 @@ package model.vo;
 import java.sql.Date;
 
 public class Orders {
-    private int orderId;                // order_id
-    private int userId;                 // user_id
-    private Date orderDate;             // order_date
-    private String deliveryAddress;     // delivery_address
-    private String deliveryStatus;      // delivery_status
-    private int totalPrice;             // total_price
-    private Date estimatedDeliveryDate; // estimated_delivery_date
-    private Date actualDeliveryDate;    // actual_delivery_date
-	
-    public Orders() {
+	private int orderId; // order_id
+	private int userId; // user_id
+	private Date orderDate; // order_date
+	private String deliveryAddress; // delivery_address
+	private String deliveryStatus; // delivery_status
+	private int totalPrice; // total_price
+	private Date estimatedDeliveryDate; // estimated_delivery_date
+	private Date actualDeliveryDate; // actual_delivery_date
+
+	public Orders() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -101,5 +101,5 @@ public class Orders {
 				+ ", estimatedDeliveryDate=" + estimatedDeliveryDate + ", actualDeliveryDate=" + actualDeliveryDate
 				+ "]";
 	}
-    
+
 }

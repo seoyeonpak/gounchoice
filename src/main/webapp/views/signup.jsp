@@ -1,49 +1,66 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>고운선택 - 회원가입 페이지</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/signup.css">
-    <link rel="icon" type="image/x-icon" href="${pageContext.request.contextPath}/resources/images/favicon.png">
+<meta charset="UTF-8">
+<title>고운선택 - 회원가입 페이지</title>
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/resources/css/signup.css">
+<link rel="icon" type="image/x-icon"
+	href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
 <body>
-    <%@ include file="common/header_simple.jsp" %>
+	<%@ include file="common/header_simple.jsp"%>
 
-    <div class="container">           
-    	<form id="signupForm"> 
-            <div class="signup-box">
-                <div class="input-group input-with-button"> <img src="${pageContext.request.contextPath}/resources/images/email.png" alt="이메일" class="email-img">
-                    <input type="email" id="email" name="email" class="input-field" placeholder="이메일" required>
-                    <button type="button" id="dupCheckBtn" class="btn-dup-check">중복 확인</button>
-                </div>
-                <div id="emailStatus" class="status-message"></div> 
-                
-                <div class="input-group">
-                	<img src="${pageContext.request.contextPath}/resources/images/password.png" alt="비밀번호" class="password-img">
-                    <input type="password" id="password" name="password" class="input-field" placeholder="비밀번호">
-                </div>
-            </div>
+	<div class="container">
+		<form id="signupForm">
+			<div class="signup-box">
+				<div class="input-group input-with-button">
+					<img
+						src="${pageContext.request.contextPath}/resources/images/email.png"
+						alt="이메일" class="email-img"> <input type="email" id="email"
+						name="email" class="input-field" placeholder="이메일" required>
+					<button type="button" id="dupCheckBtn" class="btn-dup-check">중복
+						확인</button>
+				</div>
+				<div id="emailStatus" class="status-message"></div>
 
-            <div class="signup-box">
-                <div class="input-group">
-                    <img src="${pageContext.request.contextPath}/resources/images/user.png" alt="이름" class="name-img">
-                    <input type="text" id="name" name="name" class="input-field" placeholder="이름">
-                </div>
-                <div class="input-group">
-                    <img src="${pageContext.request.contextPath}/resources/images/phonenumber.png" alt="전화번호" class="phoneNumber-img">
-                    <input type="text" id="phoneNumber" name="phoneNumber" class="input-field" placeholder="전화번호 (010-XXXX-XXXX)">
-                </div>
-                <div class="input-group">
-                    <img src="${pageContext.request.contextPath}/resources/images/address.png" alt="주소" class="address-img">
-                    <input type="text" id="address" name="address" class="input-field" placeholder="주소">
-                </div>
-            </div>
+				<div class="input-group">
+					<img
+						src="${pageContext.request.contextPath}/resources/images/password.png"
+						alt="비밀번호" class="password-img"> <input type="password"
+						id="password" name="password" class="input-field"
+						placeholder="비밀번호">
+				</div>
+			</div>
 
-            <button type="submit" class="btn-submit">회원가입</button>
-        </form>
-    </div>
-    
+			<div class="signup-box">
+				<div class="input-group">
+					<img
+						src="${pageContext.request.contextPath}/resources/images/user.png"
+						alt="이름" class="name-img"> <input type="text" id="name"
+						name="name" class="input-field" placeholder="이름">
+				</div>
+				<div class="input-group">
+					<img
+						src="${pageContext.request.contextPath}/resources/images/phonenumber.png"
+						alt="전화번호" class="phoneNumber-img"> <input type="text"
+						id="phoneNumber" name="phoneNumber" class="input-field"
+						placeholder="전화번호 (010-XXXX-XXXX)">
+				</div>
+				<div class="input-group">
+					<img
+						src="${pageContext.request.contextPath}/resources/images/address.png"
+						alt="주소" class="address-img"> <input type="text"
+						id="address" name="address" class="input-field" placeholder="주소">
+				</div>
+			</div>
+
+			<button type="submit" class="btn-submit">회원가입</button>
+		</form>
+	</div>
+
 	<script>
 		let isEmailChecked = false;
 	    let isEmailDuplicated = true;
@@ -100,9 +117,9 @@
 	                isEmailDuplicated = false;
 	                dupCheckBtn.disabled = true;
 	                emailInput.style.borderBottom = '2px solid green';
-	            } else if (response.status === 409) {
+	            } else if (response.status === 400) {
 	                const errorData = await response.json();
-	                displayEmailStatus(errorData.message || "이미 사용 중인 이메일입니다.");
+	                displayEmailStatus("이미 사용 중인 이메일입니다.");
 	                isEmailChecked = true;
 	                isEmailDuplicated = true;
 	                emailInput.style.borderBottom = '2px solid red';
@@ -147,7 +164,7 @@
                 body: JSON.stringify(requestData)
             })
             .then(async response => {
-                if (response.status === 200) {
+                if (response.status === 201) {
                     
                     return fetch("${pageContext.request.contextPath}/user/login", {
                         method: 'POST',
@@ -155,11 +172,9 @@
                         body: JSON.stringify({ "email": email, "password": password })
                     });
                     
-                } else if (response.status === 400) {
-                    const errorData = await response.json();
-                    throw new Error("회원가입 실패: " + errorData.message);
                 } else {
-                    throw new Error("회원가입 중 서버 오류 발생. 상태 코드: " + response.status);
+                    const errorData = await response.json().catch(() => ({ message: '알 수 없는 오류' }));
+                    throw new Error(errorData.message || `회원가입 실패 (상태 코드: ${response.status})`);
                 }
             })
             .then(loginResponse => {
@@ -172,8 +187,8 @@
             })
             .catch(error => {
                 console.error('AJAX/Fetch 오류:', error);
-                const errorMessage = error.message.includes("통신 중 오류") ? "통신 중 오류가 발생했습니다." : error.message;
-                displayEmailStatus(errorMessage);
+                const errorMessage = error.message || "통신 중 오류가 발생했습니다.";
+                alert(errorMessage);
             });
         });
     </script>

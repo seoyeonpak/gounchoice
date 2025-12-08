@@ -1,12 +1,12 @@
 package model.vo;
 
 public class ReviewContent {
-    private int reviewContentId;   // review_content_id
-    private int reviewId;          // review_id
-    private String question;       // question
-    private double selectedOption; // selected_option (NUMBER(2,1)이므로 double 사용)
-	
-    public ReviewContent() {
+	private int reviewContentId; // review_content_id
+	private int reviewId; // review_id
+	private String question; // question
+	private double selectedOption; // selected_option (NUMBER(2,1)이므로 double 사용)
+
+	public ReviewContent() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -56,5 +56,5 @@ public class ReviewContent {
 		return "ReviewContent [reviewContentId=" + reviewContentId + ", reviewId=" + reviewId + ", question=" + question
 				+ ", selectedOption=" + selectedOption + "]";
 	}
-    
+
 }

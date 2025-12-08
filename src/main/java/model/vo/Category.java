@@ -1,10 +1,10 @@
 package model.vo;
 
 public class Category {
-    private int categoryId;     // category_id
-    private String categoryName;// category_name
-    private int parentId;       // parent_id
-    
+	private int categoryId; // category_id
+	private String categoryName;// category_name
+	private int parentId; // parent_id
+
 	public Category() {
 		super();
 		// TODO Auto-generated constructor stub
@@ -45,5 +45,5 @@ public class Category {
 	public String toString() {
 		return "Category [categoryId=" + categoryId + ", categoryName=" + categoryName + ", parentId=" + parentId + "]";
 	}
-	
+
 }

@@ -1,74 +1,86 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>고운선택 - 주문 결제 페이지</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/checkout.css">
-    <link rel="icon" type="image/x-icon" href="${pageContext.request.contextPath}/resources/images/favicon.png">
+<meta charset="UTF-8">
+<title>고운선택 - 주문 결제 페이지</title>
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/resources/css/checkout.css">
+<link rel="icon" type="image/x-icon"
+	href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
 <body>
-    <%@ include file="common/header.jsp" %>
-	
+	<%@ include file="common/header.jsp"%>
+
 	<div class="checkout-container">
-	    <form id="orderForm" onsubmit="return handlePayment(event)">
-	        <div class="section-title">📦 배송지 입력</div>
-	        <div class="delivery-box">
-	            <input id="deliveryAddress" name="address" required></input>
-	            <div class="default-check-area">
-	                <input type="checkbox" id="defaultAddressCheck" checked>
-	                <label for="defaultAddressCheck">기본 배송지 사용</label>
-	            </div>
-	        </div>
-	
-	        <div class="section-title">🛒 주문 상품 정보</div>
-	        <table class="product-table">
-	            <thead>
-	                <tr>
-	                    <th style="width: 45%;">상품정보</th>
-	                    <th style="width: 15%;">구매가</th>
-	                    <th style="width: 15%;">수량</th>
-	                    <th style="width: 25%;">총 구매가</th>
-	                </tr>
-	            </thead>
-	            <tbody id="checkoutList">
-	                <tr>
-	                    <td colspan="4" style="text-align: center;">장바구니 상품 정보를 불러오는 중...</td>
-	                </tr>
-	            </tbody>
-	            <tfoot>
-	                <tr class="total-amount-row">
-	                    <td colspan="3">총 결제 금액:</td>
-	                    <td class="amount"><span id="finalTotalPrice">0</span>원</td>
-	                </tr>
-	            </tfoot>
-	        </table>
-	
-	        <div class="section-title">💳 결제 정보 입력</div>
-	        <div class="payment-box">
-	            <div>
-	                <label for="cardNumber">카드 번호</label>
-	                <input type="text" id="cardNumber" placeholder="1234-5678-xxxx-xxxx" required maxlength="19">
-	            </div>
-	            <div>
-	                <label for="expiryDate">만료일</label>
-	                <input type="text" id="expiryDate" placeholder="MM/YY" required maxlength="5">
-	            </div>
-	            <div>
-	                <label for="cvc">CVC</label>
-	                <input type="text" id="cvc" placeholder="XXX" required maxlength="3">
-	            </div>
-	        </div>
-	
-	        <div class="pay-btn-area">
-	            <button type="submit" class="pay-btn">결제하기</button>
-	        </div>
-	
-	    </form>
+		<form id="orderForm" onsubmit="return handlePayment(event)">
+			<div class="section-title">📦 배송지 입력</div>
+			<div class="delivery-box">
+				<input id="deliveryAddress" name="address" required></input>
+				<div class="default-check-area">
+					<input type="checkbox" id="defaultAddressCheck" checked> <label
+						for="defaultAddressCheck">기본 배송지 사용</label>
+				</div>
+			</div>
+
+			<div class="section-title">🛒 주문 상품 정보</div>
+			<table class="product-table">
+				<thead>
+					<tr>
+						<th style="width: 45%;">상품정보</th>
+						<th style="width: 15%;">구매가</th>
+						<th style="width: 15%;">수량</th>
+						<th style="width: 25%;">총 구매가</th>
+					</tr>
+				</thead>
+				<tbody id="checkoutList">
+					<tr>
+						<td colspan="4" style="text-align: center;">장바구니 상품 정보를 불러오는
+							중...</td>
+					</tr>
+				</tbody>
+				<tfoot>
+					<tr class="total-amount-row">
+						<td colspan="3">총 결제 금액:</td>
+						<td class="amount"><span id="finalTotalPrice">0</span>원</td>
+					</tr>
+				</tfoot>
+			</table>
+
+			<div class="section-title">💳 결제 정보 입력</div>
+			<div class="payment-box">
+				<div>
+					<label for="cardNumber">카드 번호</label> <input type="text"
+						id="cardNumber" placeholder="1234-5678-xxxx-xxxx" required
+						maxlength="19">
+				</div>
+				<div>
+					<label for="expiryDate">만료일</label> <input type="text"
+						id="expiryDate" placeholder="MM/YY" required maxlength="5">
+				</div>
+				<div>
+					<label for="cvc">CVC</label> <input type="text" id="cvc"
+						placeholder="XXX" required maxlength="3">
+				</div>
+			</div>
+
+			<div class="pay-btn-area">
+				<button type="submit" class="pay-btn">결제하기</button>
+			</div>
+
+		</form>
 	</div>
 	<script>
 	    let cartData = null; 
 	    let defaultUserAddress = '';
+	    
+	    const urlParams = new URLSearchParams(window.location.search);
+        const selectedItemsParam = urlParams.get('items');
+        let selectedItemIds = [];
+        if (selectedItemsParam) {
+            selectedItemIds = selectedItemsParam.split(',').map(Number);
+        }
 	    
 	    const deliveryAddressTextarea = document.getElementById('deliveryAddress');
         const defaultAddressCheck = document.getElementById('defaultAddressCheck');
@@ -98,12 +110,14 @@
                 const response = await fetch(contextPath + "/user/login");
                 if (response.ok) {
                     const userData = await response.json();
-                    if (userData.address) {
-                        defaultUserAddress = userData.address;
+                    if (userData.data.address) {
+                        defaultUserAddress = userData.data.address;
                     }
                 } else if (response.status === 401) {
+                	console.warn("로그인 상태가 아닙니다. 기본 주소를 로드하지 못했습니다.");
                 }
             } catch (error) {
+            	console.error("기본 주소 로드 중 통신 오류:", error);
             }
         }
         
@@ -140,9 +154,17 @@
 	                }
 	            }
 	
-	            const data = await response.json();
-	            const items = data.items || [];
-	            cartData = items; 
+	            const json = await response.json();
+	            const data = json.data;
+	            let items = data.items || [];
+	            
+	            if (selectedItemIds.length > 0) {
+                    items = items.filter(function(item) {
+                        return selectedItemIds.includes(item.productId);
+                    });
+                }
+                
+	            cartData = items;
 	
 	            const totalPrice = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 	
@@ -202,6 +224,7 @@
 	            totalPriceEl.textContent = totalPrice.toLocaleString();
 	
 	        } catch (error) {
+	            console.log(error);
 	            while (listEl.firstChild) {
 	                listEl.removeChild(listEl.firstChild);
 	            }
@@ -323,24 +346,29 @@
 	                method: 'POST',
 	                headers: { 'Content-Type': 'application/json' },
 	                body: JSON.stringify({ 
-	                    "address": address 
+	                    "address": address,
+	                    "productIds": selectedItemIds
 	                }) 
 	            });
 
 	            if (!orderResponse.ok) {
-	                const errorData = await orderResponse.json().catch(() => ({}));
-	                alert("결제 또는 주문 처리에 실패했습니다: " + (errorData.message || '서버 오류가 발생했습니다.'));
+	            	const errorData = await orderResponse.json().catch(() => ({}));
+	                console.error('주문 생성 실패 (API):', errorData.message || '알 수 없는 서버 오류');
+	                alert("결제 또는 주문 처리에 실패했습니다: " + (errorData.message || '서버 오류가 발생했습니다. (재고 부족 등)'));
 	                throw new Error('API order failed.');
 	            }
 	            
 	            const orderResult = await orderResponse.json();
-	            const orderId = orderResult.orderId || "N/A"; 
+	            const orderId = orderResult.data.orderId || "N/A"; 
 
+	            console.log("주문 ID " + orderId + " 생성 성공.");
+	            
 	            alert("✅ 결제가 완료되었으며 주문이 성공적으로 접수되었습니다. (주문 번호: " + orderId + ")");
 	            
 	            location.href = contextPath + "/views/orderList.jsp"; 
 
 	        } catch (error) {
+	        	console.error("결제 및 주문 처리 오류:", error);
 	            if (!error.message.startsWith('API order failed')) {
 	                alert("결제 또는 주문 처리에 실패했습니다: 네트워크 오류가 발생했습니다.");
 	            }

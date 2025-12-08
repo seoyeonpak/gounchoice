@@ -1,68 +1,73 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>고운선택 - 상품 상세 페이지</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/main.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/productDetail.css">
-    <link rel="icon" type="image/x-icon" href="${pageContext.request.contextPath}/resources/images/favicon.png">
+<meta charset="UTF-8">
+<title>고운선택 - 상품 상세 페이지</title>
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/resources/css/main.css">
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/resources/css/productDetail.css">
+<link rel="icon" type="image/x-icon"
+	href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
 <body>
-    <%@ include file="common/header.jsp" %>
+	<%@ include file="common/header.jsp"%>
 
-    <main class="detail-container">
-        <div class="product-detail-wrapper">
+	<main class="detail-container">
+		<div class="product-detail-wrapper">
 
-            <div class="product-image-section">
-                <div class="image-placeholder"></div>
-                
-                <div class="info-row rating-row">
-                    <div class="rating"></div>
-                    <div class="review"></div>
-                </div>
-                
-                <div class="detail-rating-summary">
-                    <div class="rating-block"></div>
-                    <div class="rating-block"></div>
-                    <div class="rating-block"></div>
-                    <div class="rating-block"></div>
-                    <div class="rating-block"></div>
-                </div>
-            </div>
+			<div class="product-image-section">
+				<div class="image-placeholder"></div>
 
-            <div class="product-info-section">
-                
-                <h1 class="detail-product-name"></h1>
+				<div class="info-row rating-row">
+					<div class="rating"></div>
+					<div class="review"></div>
+				</div>
 
-                <div class="detail-description-box"></div>
+				<div class="detail-rating-summary">
+					<div class="rating-block"></div>
+					<div class="rating-block"></div>
+					<div class="rating-block"></div>
+					<div class="rating-block"></div>
+					<div class="rating-block"></div>
+				</div>
+			</div>
 
-                <div class="info-row">
-                    <div class="label">가격</div>
-                    <div class="value detail-price"></div>
-                </div>
-                
-                <div class="info-row purchase-options">
-                    <div class="label">구매 수량 선택</div>
-                    <div class="value quantity-selector">
-                        <input type="number" value="1" min="1" max="99" class="quantity-input">
-                    </div>
-                </div>
-                
-                <div class="info-row total-price-row">
-                    <div class="label">총 가격</div>
-                    <div class="value detail-total-price"></div>
-                </div>
+			<div class="product-info-section">
 
-                <div class="purchase-actions">
-                    <button class="btn-cart">장바구니 담기</button>
-                    <button class="btn-buy">바로 구매</button>
-                </div>
-            </div>
-        </div>
-    </main>
-    
-    <script>
+				<h1 class="detail-product-name"></h1>
+
+				<div class="detail-description-box"></div>
+
+				<div class="info-row">
+					<div class="label">가격</div>
+					<div class="value detail-price"></div>
+				</div>
+
+				<div class="info-row purchase-options">
+					<div class="label">구매 수량 선택</div>
+					<div class="value quantity-selector">
+						<input type="number" value="1" min="1" max="99"
+							class="quantity-input">
+					</div>
+				</div>
+
+				<div class="info-row total-price-row">
+					<div class="label">총 가격</div>
+					<div class="value detail-total-price"></div>
+				</div>
+
+				<div class="purchase-actions">
+					<button class="btn-cart">장바구니 담기</button>
+					<button class="btn-buy">바로 구매</button>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script>
 	    const utilityArea = document.getElementById('utilityArea'); 
 	    
 	    const imagePlaceholder = document.querySelector('.image-placeholder');

@@ -6,149 +6,147 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import model.service.UserService;
 import model.vo.Users;
 
-// [수정 1] URL 매핑 추가: 회원가입, 이메일 중복 체크
-@WebServlet({"/user/register", "/user/dupEmailCheck"})
+@WebServlet({ "/user/register", "/user/dupEmailCheck" })
 public class RegisterServlet extends HttpServlet {
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final UserService userService = new UserService();
+	private final ObjectMapper mapper = new ObjectMapper();
+	private final UserService userService = new UserService();
 
-    // [수정 2] GET 요청 처리 (이메일 중복 체크)
-    @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String path = request.getServletPath();
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		if ("/user/dupEmailCheck".equals(request.getServletPath())) {
+			handleEmailCheck(request, response);
+		}
+	}
 
-        if ("/user/dupEmailCheck".equals(path)) {
-            handleEmailCheck(request, response);
-        }
-    }
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		if ("/user/register".equals(request.getServletPath())) {
+			handleRegister(request, response);
+		}
+	}
 
-    // POST 요청 처리 (회원가입)
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        String path = request.getServletPath();
+	// ==========================================
+	// [기능 1] 이메일 중복 체크
+	// ==========================================
+	private void handleEmailCheck(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String email = request.getParameter("email");
+		Map<String, Object> responseMap = new HashMap<>();
 
-        if ("/user/register".equals(path)) {
-            handleRegister(request, response);
-        }
-    }
+		response.setContentType("application/json; charset=UTF-8");
 
-    // ==========================================
-    // [기능 1] 이메일 중복 체크 로직
-    // ==========================================
-    private void handleEmailCheck(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String email = request.getParameter("email");
+		try {
+			if (email == null || email.trim().isEmpty())
+				throw new IllegalArgumentException("이메일을 입력해주세요.");
 
-        if (isEmpty(email)) {
-            sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "이메일을 입력해주세요.");
-            return;
-        }
+			int count = userService.checkEmail(email);
 
-        try {
-            // UserService의 checkEmail 호출 (0: 사용가능, 1: 중복)
-            int count = userService.checkEmail(email);
+			if (count > 0) {
+				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				responseMap.put("status", 400);
+				responseMap.put("code", "DUPLICATED"); // [추가] 중복 코드
+				responseMap.put("message", "같은 이메일이 이미 존재합니다.");
+			} else {
+				response.setStatus(HttpServletResponse.SC_OK);
+				responseMap.put("status", 200);
+				responseMap.put("code", "SUCCESS"); // [추가] 성공 코드
+				responseMap.put("message", "사용 가능한 이메일입니다.");
+			}
+		} catch (IllegalArgumentException e) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			responseMap.put("status", 400);
+			responseMap.put("code", "INVALID_PARAMETER");
+			responseMap.put("message", e.getMessage());
+		} catch (Exception e) {
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			responseMap.put("status", 500);
+			responseMap.put("code", "SERVER_ERROR");
+			responseMap.put("message", "서버 오류: " + e.getMessage());
+		}
 
-            if (count == 0) {
-                sendSuccessResponse(response, "사용 가능한 이메일입니다.", null);
-            } else {
-                // 409 Conflict: 리소스 충돌 (이미 존재함)
-                sendErrorResponse(response, HttpServletResponse.SC_CONFLICT, "이미 사용 중인 이메일입니다.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            sendErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "서버 오류 발생");
-        }
-    }
+		mapper.writeValue(response.getWriter(), responseMap);
+	}
 
-    // ==========================================
-    // [기능 2] 회원가입 로직 (기존 코드 리팩토링)
-    // ==========================================
-    private void handleRegister(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        request.setCharacterEncoding("UTF-8");
-        Users user = null;
+	// ==========================================
+	// [기능 2] 회원가입
+	// ==========================================
+	private void handleRegister(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		request.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json; charset=UTF-8");
 
-        try {
-            // JSON -> Users 객체 변환
-            BufferedReader reader = request.getReader();
-            user = objectMapper.readValue(reader, Users.class);
+		Map<String, Object> responseMap = new HashMap<>();
 
-        } catch (JsonParseException | JsonMappingException e) {
-            sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "잘못된 JSON 형식입니다.");
-            return;
-        } catch (IOException e) {
-            sendErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "요청 읽기 실패.");
-            return;
-        }
+		try {
+			BufferedReader reader = request.getReader();
+			Users user = mapper.readValue(reader, Users.class);
 
-        // 필수 필드 검사
-        if (user == null || isEmpty(user.getEmail()) || isEmpty(user.getPassword())
-                || isEmpty(user.getPhoneNumber()) || isEmpty(user.getName())) {
-            sendErrorResponse(response, HttpServletResponse.SC_BAD_REQUEST, "모든 필수 정보를 입력해주세요.");
-            return;
-        }
+			if (user == null || isEmpty(user.getEmail()) || isEmpty(user.getPassword())
+					|| isEmpty(user.getPhoneNumber()) || isEmpty(user.getName())) {
+				throw new IllegalArgumentException("요청 값이 올바르지 않습니다.");
+			}
 
-        // [추가] 회원가입 전 이메일 중복 한 번 더 체크 (보안 강화)
-        if (userService.checkEmail(user.getEmail()) > 0) {
-            sendErrorResponse(response, HttpServletResponse.SC_CONFLICT, "이미 가입된 이메일입니다.");
-            return;
-        }
+			if (userService.checkEmail(user.getEmail()) > 0) {
+				throw new IllegalArgumentException("이미 가입된 이메일입니다.");
+			}
 
-        // 서비스 호출
-        int result = userService.insertUser(user);
+			int result = userService.insertUser(user);
 
-        if (result > 0) {
-            // 회원가입 성공 시 로그인 페이지로 리다이렉트 경로 안내
-            sendSuccessResponse(response, "회원가입이 완료되었습니다.", "/login.jsp");
-        } else {
-            sendErrorResponse(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "회원가입 실패 (DB 오류)");
-        }
-    }
+			if (result > 0) {
+				response.setStatus(HttpServletResponse.SC_CREATED); // 201 Created
+				responseMap.put("status", 201);
+				responseMap.put("code", "SUCCESS"); // [추가] 성공 코드
+				responseMap.put("message", "회원가입이 완료되었습니다.");
 
-    // 유틸리티 메소드들
-    private boolean isEmpty(String value) {
-        return value == null || value.trim().isEmpty();
-    }
+				Map<String, Object> userData = new HashMap<>();
+				userData.put("email", user.getEmail());
+				userData.put("name", user.getName());
+				userData.put("phoneNumber", user.getPhoneNumber());
+				userData.put("address", user.getAddress());
 
-    private void sendSuccessResponse(HttpServletResponse response, String message, String redirectPath) throws IOException {
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.setContentType("application/json; charset=UTF-8");
-        
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("status", "success");
-        responseMap.put("message", message);
-        if (redirectPath != null) {
-            responseMap.put("redirect", redirectPath);
-        }
+				responseMap.put("data", userData);
 
-        PrintWriter out = response.getWriter();
-        out.print(objectMapper.writeValueAsString(responseMap));
-        out.flush();
-    }
+			} else {
+				throw new RuntimeException("회원가입 처리 실패");
+			}
 
-    private void sendErrorResponse(HttpServletResponse response, int status, String message) throws IOException {
-        response.setStatus(status);
-        response.setContentType("application/json; charset=UTF-8");
-        
-        Map<String, Object> responseMap = new HashMap<>();
-        responseMap.put("status", "fail"); // 클라이언트에서 구분하기 쉽게 fail로 통일
-        responseMap.put("message", message);
+		} catch (JsonParseException | JsonMappingException e) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			responseMap.put("status", 400);
+			responseMap.put("code", "INVALID_JSON"); // JSON 파싱 에러 코드
+			responseMap.put("message", "요청 값이 올바르지 않습니다.");
+		} catch (IllegalArgumentException e) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			responseMap.put("status", 400);
+			responseMap.put("code", "INVALID_PARAMETER");
+			responseMap.put("message", e.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			responseMap.put("status", 500);
+			responseMap.put("code", "SERVER_ERROR");
+			responseMap.put("message", "서버 내부 오류가 발생했습니다.");
+		}
 
-        PrintWriter out = response.getWriter();
-        out.print(objectMapper.writeValueAsString(responseMap));
-        out.flush();
-    }
+		mapper.writeValue(response.getWriter(), responseMap);
+	}
+
+	private boolean isEmpty(String value) {
+		return value == null || value.trim().isEmpty();
+	}
 }

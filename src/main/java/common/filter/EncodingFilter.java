@@ -13,27 +13,29 @@ import jakarta.servlet.http.HttpServletRequest;
 @WebFilter("/*")
 public class EncodingFilter implements Filter {
 
-    @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-            throws IOException, ServletException {
-        
-        request.setCharacterEncoding("UTF-8");
-        
-        HttpServletRequest httpRequest = (HttpServletRequest) request;
-        String uri = httpRequest.getRequestURI();
-        
-        if (uri.endsWith(".css") || uri.endsWith(".js") || uri.endsWith(".png") || uri.endsWith(".jpg") 
-                || uri.endsWith(".gif") || uri.contains("/resources/")) {
-        } else {
-        	response.setContentType("text/html; charset=UTF-8");
-        }
-        
-        chain.doFilter(request, response);
-    }
+	@Override
+	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+			throws IOException, ServletException {
 
-    @Override
-    public void init(FilterConfig fConfig) throws ServletException {}
+		request.setCharacterEncoding("UTF-8");
 
-    @Override
-    public void destroy() {}
+		HttpServletRequest httpRequest = (HttpServletRequest) request;
+		String uri = httpRequest.getRequestURI();
+
+		if (uri.endsWith(".css") || uri.endsWith(".js") || uri.endsWith(".png") || uri.endsWith(".jpg")
+				|| uri.endsWith(".gif") || uri.contains("/resources/")) {
+		} else {
+			response.setContentType("text/html; charset=UTF-8");
+		}
+
+		chain.doFilter(request, response);
+	}
+
+	@Override
+	public void init(FilterConfig fConfig) throws ServletException {
+	}
+
+	@Override
+	public void destroy() {
+	}
 }

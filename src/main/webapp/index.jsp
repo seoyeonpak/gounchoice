@@ -1,101 +1,107 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>고운선택 - 메인 페이지</title>
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/main.css">
-    <link rel="icon" type="image/x-icon" href="${pageContext.request.contextPath}/resources/images/favicon.png">
+<meta charset="UTF-8">
+<title>고운선택 - 메인 페이지</title>
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/resources/css/main.css">
+<link rel="icon" type="image/x-icon"
+	href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
 <body>
-    <%@ include file="views/common/header.jsp" %>
+	<%@ include file="views/common/header.jsp"%>
 
-    <div class="main-nav-container">
-        <div class="main-nav" id="mainNav">
-            <button class="category-btn" data-category="">전체</button> 
-            
-            <div class="category-item-wrapper" data-category="헤어">
-                <button class="category-btn">헤어</button>
-                <div class="submenu">
-                    <a href="#" class="sub-category-link" data-category="샴푸">샴푸</a>
-                    <a href="#" class="sub-category-link" data-category="린스&트리트먼트">린스&트리트먼트</a>
-                    <a href="#" class="sub-category-link" data-category="헤어에센스">헤어에센스</a>
-                </div>
-            </div>
-            
-            <div class="category-item-wrapper" data-category="바디">
-                <button class="category-btn">바디</button>
-                <div class="submenu">
-                    <a href="#" class="sub-category-link" data-category="바디워시">바디워시</a>
-                    <a href="#" class="sub-category-link" data-category="바디스크럽&필링">바디스크럽&필링</a>
-                    <a href="#" class="sub-category-link" data-category="핸드케어">핸드케어</a>
-                </div>
-            </div>
+	<div class="main-nav-container">
+		<div class="main-nav" id="mainNav">
+			<button class="category-btn" data-category="">전체</button>
 
-            <div class="category-item-wrapper" data-category="스킨케어">
-                <button class="category-btn">스킨케어</button>
-                <div class="submenu">
-                    <a href="#" class="sub-category-link" data-category="에센스&세럼&앰플">에센스&세럼&앰플</a>
-                    <a href="#" class="sub-category-link" data-category="스킨&토너">스킨&토너</a>
-                    <a href="#" class="sub-category-link" data-category="로션">로션</a>
-                    <a href="#" class="sub-category-link" data-category="크림">크림</a>
-                    <a href="#" class="sub-category-link" data-category="미스트">미스트</a>
-                    <a href="#" class="sub-category-link" data-category="오일">오일</a>
-                    <a href="#" class="sub-category-link" data-category="클렌징폼&젤">클렌징폼&젤</a>
-                </div>
-            </div>
-            
-            <div class="category-item-wrapper" data-category="선케어">
-                <button class="category-btn">선케어</button>
-                <div class="submenu">
-                    <a href="#" class="sub-category-link" data-category="선크림">선크림</a>
-                    <a href="#" class="sub-category-link" data-category="선쿠션">선쿠션</a>
-                    <a href="#" class="sub-category-link" data-category="선스틱">선스틱</a>
-                </div>
-            </div>
-            
-            <div class="category-item-wrapper" data-category="메이크업">
-                <button class="category-btn">메이크업</button>
-                <div class="submenu">
-                    <a href="#" class="sub-category-link" data-category="립">립</a>
-                    <a href="#" class="sub-category-link" data-category="아이섀도우">아이섀도우</a>
-                    <a href="#" class="sub-category-link" data-category="메이크업 도구">메이크업 도구</a>
-                </div>
-            </div>
-            
-            <div class="category-item-wrapper" data-category="베이비케어">
-                <button class="category-btn">베이비케어</button>
-                <div class="submenu">
-                    <a href="#" class="sub-category-link" data-category="베이비케어 제품">베이비케어 제품</a>
-                </div>
-            </div>
-            
-            <div class="category-item-wrapper" data-category="향수">
-                <button class="category-btn">향수</button>
-                <div class="submenu">
-                    <a href="#" class="sub-category-link" data-category="향수 제품">향수 제품</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <main class="content-container">
-	    <div id="filterArea"></div>
-	    <div class="filter-apply-area">
-            <button id="applyFiltersBtn" class="search-button">필터 적용</button>
-        </div>
-        <section class="product-list-container">
-        	<div id="productHeader">
-	        	<h2 id="productTitle"></h2>
-	        	<div id="sortArea"></div>
-        	</div>
-            <div class="product-grid" id="productGrid">
-            </div>
-            <p id="messageArea" style="text-align: center; margin-top: 30px; display: none; color: #888;"></p>
-        </section>
-    </main>
+			<div class="category-item-wrapper" data-category="헤어">
+				<button class="category-btn">헤어</button>
+				<div class="submenu">
+					<a href="#" class="sub-category-link" data-category="샴푸">샴푸</a> <a
+						href="#" class="sub-category-link" data-category="린스&트리트먼트">린스&트리트먼트</a>
+					<a href="#" class="sub-category-link" data-category="헤어에센스">헤어에센스</a>
+				</div>
+			</div>
 
-    <script>    	
+			<div class="category-item-wrapper" data-category="바디">
+				<button class="category-btn">바디</button>
+				<div class="submenu">
+					<a href="#" class="sub-category-link" data-category="바디워시">바디워시</a>
+					<a href="#" class="sub-category-link" data-category="바디스크럽&필링">바디스크럽&필링</a>
+					<a href="#" class="sub-category-link" data-category="핸드케어">핸드케어</a>
+				</div>
+			</div>
+
+			<div class="category-item-wrapper" data-category="스킨케어">
+				<button class="category-btn">스킨케어</button>
+				<div class="submenu">
+					<a href="#" class="sub-category-link" data-category="에센스&세럼&앰플">에센스&세럼&앰플</a>
+					<a href="#" class="sub-category-link" data-category="스킨&토너">스킨&토너</a>
+					<a href="#" class="sub-category-link" data-category="로션">로션</a> <a
+						href="#" class="sub-category-link" data-category="크림">크림</a> <a
+						href="#" class="sub-category-link" data-category="미스트">미스트</a> <a
+						href="#" class="sub-category-link" data-category="오일">오일</a> <a
+						href="#" class="sub-category-link" data-category="클렌징폼&젤">클렌징폼&젤</a>
+				</div>
+			</div>
+
+			<div class="category-item-wrapper" data-category="선케어">
+				<button class="category-btn">선케어</button>
+				<div class="submenu">
+					<a href="#" class="sub-category-link" data-category="선크림">선크림</a> <a
+						href="#" class="sub-category-link" data-category="선쿠션">선쿠션</a> <a
+						href="#" class="sub-category-link" data-category="선스틱">선스틱</a>
+				</div>
+			</div>
+
+			<div class="category-item-wrapper" data-category="메이크업">
+				<button class="category-btn">메이크업</button>
+				<div class="submenu">
+					<a href="#" class="sub-category-link" data-category="립">립</a> <a
+						href="#" class="sub-category-link" data-category="아이섀도우">아이섀도우</a>
+					<a href="#" class="sub-category-link" data-category="메이크업 도구">메이크업
+						도구</a>
+				</div>
+			</div>
+
+			<div class="category-item-wrapper" data-category="베이비케어">
+				<button class="category-btn">베이비케어</button>
+				<div class="submenu">
+					<a href="#" class="sub-category-link" data-category="베이비케어 제품">베이비케어
+						제품</a>
+				</div>
+			</div>
+
+			<div class="category-item-wrapper" data-category="향수">
+				<button class="category-btn">향수</button>
+				<div class="submenu">
+					<a href="#" class="sub-category-link" data-category="향수 제품">향수
+						제품</a>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<main class="content-container">
+		<div id="filterArea"></div>
+		<div class="filter-apply-area">
+			<button id="applyFiltersBtn" class="search-button">필터 적용</button>
+		</div>
+		<section class="product-list-container">
+			<div id="productHeader">
+				<h2 id="productTitle"></h2>
+				<div id="sortArea"></div>
+			</div>
+			<div class="product-grid" id="productGrid"></div>
+			<p id="messageArea"
+				style="text-align: center; margin-top: 30px; display: none; color: #888;"></p>
+		</section>
+	</main>
+
+	<script>    	
         const searchForm = document.getElementById('searchForm');
         const utilityArea = document.getElementById('utilityArea'); 
         const productTitle = document.getElementById('productTitle');

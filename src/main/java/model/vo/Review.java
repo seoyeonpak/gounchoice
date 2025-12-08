@@ -3,12 +3,12 @@ package model.vo;
 import java.sql.Date;
 
 public class Review {
-    private int reviewId;   // review_id
-    private int userId;     // user_id
-    private int productId;  // product_id
-    private Date createdAt; // created_at
-	
-    public Review() {
+	private int reviewId; // review_id
+	private int userId; // user_id
+	private int productId; // product_id
+	private Date createdAt; // created_at
+
+	public Review() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
@@ -58,5 +58,5 @@ public class Review {
 		return "Review [reviewId=" + reviewId + ", userId=" + userId + ", productId=" + productId + ", createdAt="
 				+ createdAt + "]";
 	}
-    
+
 }
