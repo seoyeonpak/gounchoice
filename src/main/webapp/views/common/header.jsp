@@ -87,6 +87,10 @@
 	    linkMypage.href = `${pageContext.request.contextPath}/views/mypage.jsp`;
 	    linkMypage.textContent = '마이페이지';
 	    
+	    const linkOrders = document.createElement('a');
+	    linkOrders.href = `${pageContext.request.contextPath}/views/orderList.jsp`;
+	    linkOrders.textContent = '주문 목록';
+	    
 	    const linkCart = document.createElement('a');
 	    linkCart.href = `${pageContext.request.contextPath}/views/cart.jsp`;
 	    linkCart.textContent = '장바구니';
@@ -94,6 +98,7 @@
 	    utilityArea.appendChild(spanUser);
 	    utilityArea.appendChild(linkLogout);
 	    utilityArea.appendChild(linkMypage);
+	    utilityArea.appendChild(linkOrders);
 	    utilityArea.appendChild(linkCart);
 	
 	    document.getElementById('logoutLink').addEventListener('click', handleLogout);
@@ -113,4 +118,6 @@
 	    utilityArea.appendChild(linkLogin);
 	    utilityArea.appendChild(linkSignup);
 	}
+	
+	document.addEventListener('DOMContentLoaded', checkLoginStatus);
 </script>

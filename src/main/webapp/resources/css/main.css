@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-    background-color: #F3EBE0; 
-    color: #4b3832; 
+    background-color: #F3EBE0;
+    color: #4b3832;
 }
 
 a {
@@ -17,31 +17,27 @@ a {
     color: inherit;
 }
 
-/* ---------------------------------------------------------------------- */
-/* 1. 네비게이션 */
-/* ---------------------------------------------------------------------- */
-
 .main-nav-container {
-    background-color: #f1ede5; 
+    background-color: #f1ede5;
     border-bottom: 1px solid #c9c3b4;
     padding: 0 40px;
-    position: relative; 
-    z-index: 100; 
+    position: relative;
+    z-index: 100;
 }
 
 .main-nav {
     display: flex;
-    width: 100%; 
+    width: 100%;
     margin: 0;
     padding: 0;
 }
 
 .main-nav > button.category-btn {
-    flex-grow: 1; 
+    flex-grow: 1;
     text-align: center;
-    background-color: transparent; 
+    background-color: transparent;
     border: none;
-    padding: 15px 0; 
+    padding: 15px 0;
     font-size: 15px;
     cursor: pointer;
     color: #4b3832;
@@ -54,37 +50,36 @@ a {
 
 .category-item-wrapper {
     position: relative;
-    flex-grow: 1; 
+    flex-grow: 1;
     text-align: center;
 }
 
 .category-item-wrapper button.category-btn {
-    background-color: transparent; 
+    background-color: transparent;
     border: none;
-    padding: 15px 0; 
+    padding: 15px 0;
     font-size: 15px;
     cursor: pointer;
     color: #4b3832;
     transition: background-color 0.2s;
-    width: 100%; 
+    width: 100%;
 }
 
 .category-item-wrapper:hover > button.category-btn,
-.category-item-wrapper button.category-btn.active { 
+.category-item-wrapper button.category-btn.active {
     background-color: #e0d8c7;
 }
 
 .submenu {
     position: absolute;
-    top: 100%; 
+    top: 100%;
     left: 0;
-    width: 100%; 
+    width: 100%;
     background-color: #ffffff;
     border: 1px solid #c9c3b4;
     border-top: none;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    
-    display: none; 
+    display: none;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.3s, visibility 0.3s;
@@ -92,7 +87,7 @@ a {
 }
 
 .category-item-wrapper:hover .submenu {
-    display: block; 
+    display: block;
     opacity: 1;
     visibility: visible;
 }
@@ -112,33 +107,27 @@ a {
     font-weight: 500;
 }
 
-
-/* ---------------------------------------------------------------------- */
-/* 2. 필터 및 상품 영역 */
-/* ---------------------------------------------------------------------- */
-
 .content-container {
-    flex: 1; 
+    flex: 1;
     width: 90%;
     max-width: 1200px;
     margin: 30px auto;
-    display: block; 
+    display: block;
 }
 
-/* 필터 영역 전체 박스 (가격 및 평점) */
 #filterArea {
-    padding: 15px 25px; 
-    background-color: #fdfcf9; 
-    border: 1px solid #e0d8c7; 
-    border-radius: 8px 8px 0 0; 
+    padding: 15px 25px;
+    background-color: #fdfcf9;
+    border: 1px solid #e0d8c7;
+    border-radius: 8px 8px 0 0;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
     margin-bottom: 0;
 }
 
 .product-filters-wrapper {
     display: flex;
-    justify-content: flex-start; 
-    gap: 40px; 
+    justify-content: flex-start;
+    gap: 40px;
     align-items: center;
 }
 
@@ -244,16 +233,15 @@ a {
     border-color: white;
 }
 
-/* 필터 적용 버튼 영역 */
 .filter-apply-area {
     display: flex;
     justify-content: flex-end;
-    border: 1px solid #e0d8c7; 
+    border: 1px solid #e0d8c7;
     border-top: none;
-    border-radius: 0 0 8px 8px; 
-    padding: 10px 25px; 
-    background-color: #f1ede5; 
-    margin-bottom: 25px; /* 💡 정렬 영역과 간격 확보 */
+    border-radius: 0 0 8px 8px;
+    padding: 10px 25px;
+    background-color: #f1ede5;
+    margin-bottom: 25px;
 }
 
 #applyFiltersBtn {
@@ -272,7 +260,6 @@ a {
     background-color: #8b6855;
 }
 
-/* 정렬 영역: 상품 목록 제목과 같은 선상에 배치 */
 #sortArea {
     display: flex;
     justify-content: flex-end;
@@ -285,58 +272,47 @@ a {
     gap: 10px;
 }
 
-
-/* ---------------------------------------------------------------------- */
-/* 3. 상품 목록 영역 */
-/* ---------------------------------------------------------------------- */
-
-/* 상품 목록 컨테이너 */
 .product-list-container {
-    display: block; 
+    display: block;
     width: 100%;
 }
 
-/* 상품 목록 헤더 영역 */
 #productHeader {
     display: flex;
-    justify-content: space-between; 
+    justify-content: space-between;
     align-items: center;
-    margin-bottom: 25px; 
+    margin-bottom: 25px;
     padding-right: 5px;
 }
 
-/* 상품 타이틀 (좌측 정렬) */
 #productTitle {
-    flex-grow: 1; 
+    flex-grow: 1;
     margin-bottom: 0;
     color: #4b3832;
     font-size: 24px;
 }
 
-/* 상품 그리드 */
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); 
+    grid-template-columns: repeat(4, 1fr);
     gap: 25px;
 }
 
-
 .product-list-container.is-loading {
     opacity: 0;
-    pointer-events: none; 
+    pointer-events: none;
 }
 
 .product-list-container {
     opacity: 1;
-    transition: opacity 0.5s ease-in-out; 
+    transition: opacity 0.5s ease-in-out;
 }
 
-/* 상품 카드 스타일 */
 .product-card {
     background-color: #ffffff;
     border-radius: 4px;
     overflow: hidden;
-    border: 1px solid #dcdcdc; 
+    border: 1px solid #dcdcdc;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     cursor: pointer;
     transition: transform 0.2s, box-shadow 0.2s;
@@ -350,7 +326,7 @@ a {
 .product-image-placeholder {
     background-color: #f0f0f0;
     width: 100%;
-    height: 250px; 
+    height: 250px;
     position: relative;
 }
 
@@ -360,45 +336,45 @@ a {
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover; 
+    object-fit: cover;
 }
 
 .product-info {
     text-align: left;
-    padding: 10px 15px 0 15px; 
+    padding: 10px 15px 0 15px;
 }
 
 .product-name {
     font-size: 16px;
     font-weight: bold;
-    margin-bottom: 8px; 
+    margin-bottom: 8px;
     color: #4b3832;
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 2; 
+    -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    min-height: 40px; 
+    min-height: 40px;
 }
 
 .price-rating-wrapper {
     display: flex;
-    justify-content: space-between; 
+    justify-content: space-between;
     align-items: center;
-    margin-top: 5px; 
-    padding-bottom: 5px; 
+    margin-top: 5px;
+    padding-bottom: 5px;
 }
 
 .product-price {
     font-size: 15px;
     font-weight: 700;
-    color: #8b6b5e; 
-    flex-grow: 1; 
+    color: #8b6b5e;
+    flex-grow: 1;
 }
 
 .product-rating {
     font-size: 14px;
     font-weight: 500;
     color: #4b3832;
-    white-space: nowrap; 
+    white-space: nowrap;
 }
