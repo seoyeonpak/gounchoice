@@ -12,6 +12,8 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import model.vo.Users;
 import model.service.ProductService;
 import model.vo.Product;
 
@@ -138,8 +140,15 @@ public class ProductServlet extends HttpServlet {
 	// [기능 3] 추천 상품 조회
 	// ==========================================
 	private void handleRecommend(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		int userId = 0;
+		HttpSession session = request.getSession(false);
+		Users loginUser = (session != null) ? (Users) session.getAttribute("loginUser") : null;
+		
+		if (loginUser != null) {
+			userId = loginUser.getUserId();
+		}
 		try {
-			List<Product> list = productService.getRecommendProducts();
+			List<Product> list = productService.getRecommendProducts(userId);
 			response.setStatus(HttpServletResponse.SC_OK);
 			mapper.writeValue(response.getWriter(), list);
 		} catch (Exception e) {

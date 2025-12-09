@@ -101,7 +101,6 @@
                 const response = await fetch(contextPath + "/user/login"); 
                 
                 if (response.status === 401) {
-                    alert("로그인이 필요합니다.");
                     window.location.href = contextPath + "/views/login.jsp";
                     return;
                 }
@@ -334,15 +333,28 @@
             
             if (field === 'email') {
                 const newEmail = editForm.querySelector('input[name="email"]').value;
+                const statusDiv = document.getElementById('emailStatus');
+                
                 if (newEmail !== currentEmailValue) {
                     if (!isEmailChecked) {
-                        displayModalMessage("이메일 중복 확인을 해주세요.");
+                        statusDiv.textContent = "이메일 중복 확인을 해주세요.";
+                        statusDiv.style.color = "red";
                         return;
                     }
                     if (isEmailDuplicated) {
-                        displayModalMessage("이미 사용 중인 이메일입니다.");
+                        statusDiv.textContent = "이미 사용 중인 이메일이거나, 유효하지 않은 이메일입니다.";
+                        statusDiv.style.color = "red";
                         return;
                     }
+                }
+                statusDiv.textContent = "";
+            }
+            
+            if (field === 'phone') {
+                const newPhone = editForm.querySelector('input[name="phoneNumber"]').value;
+                if (!newPhone.startsWith("010")) {
+                    alert("휴대폰 번호는 010으로 시작해야 합니다.");
+                    return;
                 }
             }
             
@@ -393,15 +405,14 @@
                 const responseData = await response.json();
 
                 if (response.ok) {
-                    alert(responseData.message);
                     closeModal();
                     fetchUserInfo(); 
                 } else {
-                    alert("수정 실패: " + (responseData.message || "알 수 없는 오류"));
+                    alert("업데이트에 실패했습니다.");
                 }
             } catch (error) {
                 console.error('AJAX 업데이트 오류:', error);
-                alert("서버 통신 중 오류가 발생했습니다.");
+                alert("업데이트에 실패했습니다.");
             }
         });
 

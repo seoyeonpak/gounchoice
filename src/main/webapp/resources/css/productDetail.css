@@ -71,7 +71,7 @@
 
 
 .detail-rating-summary {
-	display: flex;
+	display: none;
 	flex-wrap: wrap;
 	justify-content: flex-start;
 	gap: 10px;

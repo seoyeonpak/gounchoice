@@ -23,9 +23,10 @@ public class AuthenticationFilter extends HttpFilter implements Filter {
 	// [화이트리스트] 로그인 안 해도 들어갈 수 있는 경로들
 	private static final List<String> WHITE_LIST = Arrays.asList(
 			// 1. 메인 및 정적 페이지
-			"/", // 메인
-			"/index.jsp", "/views/login.jsp", // 로그인 화면
-			"/views/signup.jsp",
+			"/", "/index.jsp", // 메인
+			"/views/login.jsp", // 로그인 화면
+			"/views/signup.jsp", // 회원가입 화면
+			"/views/productDetail.jsp", // 상품 상세 화
 
 			// 2. 회원 관련 (비로그인 허용)
 			"/user/login", // 로그인 요청
@@ -34,10 +35,7 @@ public class AuthenticationFilter extends HttpFilter implements Filter {
 
 			// 3. 상품 관련 (비로그인 허용)
 			"/product/search", // 상품 목록
-			"/product/detail", // 상품 상세
-			"/product/recommend"
-
-	// "/resources" 는 아래 코드에서 startWith로 별도 처리
+			"/product/detail" // 상품 상세
 	);
 
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
@@ -84,7 +82,17 @@ public class AuthenticationFilter extends HttpFilter implements Filter {
 			} else {
 				// [페이지 요청일 때] 로그인 페이지로 리다이렉트
 				// (사용자가 보려던 페이지로 다시 돌아오게 하려면 ?redirect=... 붙여줄 수도 있음)
-				res.sendRedirect(contextPath + "/views/login.jsp");
+				String currentUrl = req.getRequestURL().toString();
+				String queryString = req.getQueryString();
+				if (queryString != null) {
+					currentUrl += "?" + queryString;
+				}
+
+				// URL 인코딩 수행
+				String encodedRedirect = java.net.URLEncoder.encode(currentUrl, "UTF-8");
+
+				// 로그인 페이지로 리다이렉트 시 redirect 파라미터 추가
+				res.sendRedirect(contextPath + "/views/login.jsp?redirect=" + encodedRedirect);
 			}
 		}
 	}

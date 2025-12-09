@@ -1,140 +1,229 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
-<%@ page import="java.util.List" %>
-<%@ page import="java.util.ArrayList" %>
-<%@ page import="model.vo.Orders" %> 
-<%@ page import="model.vo.OrderItem" %> 
-<%@ page import="java.text.SimpleDateFormat" %>
-<%@ page import="java.text.NumberFormat" %>
-<%@ page import="java.sql.Date" %> 
-
-<%
-    String ctx = request.getContextPath();
-    
-    // 포맷터 설정
-    SimpleDateFormat outputSdf = new SimpleDateFormat("yyyy-MM-dd");
-    NumberFormat numberFormat = NumberFormat.getInstance(); 
-    
-    // 1. 주문 기본 정보 (Orders VO)
-    Orders order = (Orders) request.getAttribute("order");
-    
-    // 2. 주문 상품 목록 (List<OrderItem>)
-    List<OrderItem> orderItemList = (List<OrderItem>) request.getAttribute("orderItemList");
-    
-    // 데이터가 없을 경우 처리
-    if (order == null || orderItemList == null) {
-        // 실제 운영 환경에서는 에러 페이지로 리다이렉션하거나 사용자에게 안내해야 합니다.
-        out.println("<div class='container' style='text-align: center; padding: 50px;'>");
-        out.println("<h2>⚠️ 주문 상세 정보를 불러올 수 없습니다.</h2>");
-        out.println("<p>유효하지 않은 주문 번호이거나 데이터 로드에 실패했습니다.</p>");
-        out.println("<a href='" + ctx + "/views/order.jsp' class='back-button'>목록으로 돌아가기</a></div>");
-        return; // JSP 실행 중지
-    }
-    
-    // 배송 상태에 따른 CSS 클래스 결정
-    String statusClass = "";
-    String deliveryStatus = order.getDeliveryStatus();
-    if ("배송완료".equals(deliveryStatus)) {
-        statusClass = "status-completed";
-    } else if ("배송준비중".equals(deliveryStatus)) {
-        statusClass = "status-preparing";
-    }
-    
-%>
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>고운선택 - 주문 상세</title>
-    <link rel="stylesheet" href="<%=ctx%>/resources/css/style.css"> 
-    <link rel="icon" type="image/x-icon" href="<%=ctx%>/resources/images/favicon.png">
-    
-    <style>
-        body { background-color: #FAF7FF; } /* 배경색 유지 */
-        .container { width: 700px; margin: 40px auto; background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-        h2 { font-size: 24px; color: #AB9282; border-bottom: 2px solid #AB9282; padding-bottom: 10px; margin-bottom: 30px; }
-        
-        /* 주문 정보 섹션 */
-        .order-summary, .delivery-info, .item-list-header { border: 1px solid #ddd; padding: 15px; margin-bottom: 20px; border-radius: 4px; }
-        .order-summary p, .delivery-info p { margin: 8px 0; font-size: 15px; line-height: 1.6; }
-        .order-summary strong, .delivery-info strong { display: inline-block; width: 100px; color: #555; }
-        .status-completed { color: #8A4B08; font-weight: bold; }
-        .status-preparing { color: #1a73e8; font-weight: bold; }
-
-        /* 상품 목록 테이블 */
-        .item-list-table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 14px; }
-        .item-list-table th, .item-list-table td { border: 1px solid #eee; padding: 10px; text-align: center; }
-        .item-list-table th { background-color: #f7f7f7; color: #333; }
-        .item-list-table td:nth-child(1) { text-align: left; } /* 상품명 왼쪽 정렬 */
-        
-        /* 최종 금액 */
-        .total-section { text-align: right; margin-top: 20px; font-size: 1.2em; font-weight: bold; color: #c0392b; }
-        .back-button { display: block; width: 150px; margin: 30px auto 0; padding: 10px; text-align: center; background-color: #AB9282; color: white; text-decoration: none; border-radius: 4px; transition: background-color 0.2s; }
-        .back-button:hover { background-color: #9C8370; }
-    </style>
+<meta charset="UTF-8">
+<title>고운선택 - 주문 상세 페이지</title>
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/resources/css/orderDetail.css">
+<link rel="icon" type="image/x-icon"
+	href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
 <body>
-    <header>
-        <div class="logo-area" style="text-align: center; padding: 20px 0;">
-            <span style="color:#AB9282; font-size: 2em; font-weight: bold;">고운선택</span>
-        </div>
-    </header>
+	<%@ include file="common/header.jsp"%>
 
-    <div class="container">
-        <h2>🛍️ 주문 상세 내역 (#<%= order.getOrderId() %>)</h2>
+	<div class="container">
+		<h2 id="pageTitle">주문 상세 내역</h2>
 
-        <div class="order-summary">
-            <h3>주문 정보</h3>
-            <p><strong>주문 번호:</strong> #<%= order.getOrderId() %></p>
-            <p><strong>주문 일자:</strong> <%= outputSdf.format(order.getOrderDate()) %></p>
-            <p>
-                <strong>배송 상태:</strong> 
-                <span class="<%= statusClass %>">
-                    <%= deliveryStatus %>
-                </span>
-            </p>
-        </div>
-        
-        <div class="delivery-info">
-            <h3>배송지 정보</h3>
-            <p><strong>수령 주소:</strong> <%= order.getDeliveryAddress() %></p>
-            <p><strong>도착 예정일:</strong> <%= outputSdf.format(order.getEstimatedDeliveryDate()) %></p>
-            <p><strong>도착 완료일:</strong> <%= order.getActualDeliveryDate() != null ? outputSdf.format(order.getActualDeliveryDate()) : "미도착" %></p>
-        </div>
-        
-        <div class="item-list-header">
-            <h3>주문 상품 (<%= orderItemList.size() %>종)</h3>
-            <table class="item-list-table">
-                <thead>
-                    <tr>
-                        <th style="width: 50%;">상품명</th>
-                        <th style="width: 15%;">단가</th>
-                        <th style="width: 15%;">수량</th>
-                        <th style="width: 20%;">총 금액</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% long totalAmount = 0; %>
-                    <% for (OrderItem item : orderItemList) { 
-                        // OrderItem VO를 사용하여 상품 정보 출력
-                        long itemTotalPrice = (long)item.getOrderPrice() * item.getQuantity();
-                        totalAmount += itemTotalPrice; 
-                    %>
-                    <tr>
-                        <td><%= item.getProductName() %></td>
-                        <td><%= numberFormat.format(item.getOrderPrice()) %>원</td>
-                        <td><%= numberFormat.format(item.getQuantity()) %>개</td>
-                        <td><%= numberFormat.format(itemTotalPrice) %>원</td>
-                    </tr>
-                    <% } %>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="total-section">
-            최종 결제 금액: <%= numberFormat.format(order.getTotalPrice()) %>원
-        </div>
-        
-        <a href="<%=ctx%>/views/order.jsp" class="back-button">목록으로 돌아가기</a>
-    </div>
+		<div id="detailContentArea">
+			<div style="text-align: center; padding: 50px; color: #888;">
+				주문 상세 정보를 불러오는 중...</div>
+		</div>
+
+		<div class="button-container" id="actionButtons">
+			<a href="${pageContext.request.contextPath}/views/order.jsp"
+				class="back-button">목록으로 돌아가기</a>
+		</div>
+	</div>
 </body>
+<script>
+	const contextPath = "${pageContext.request.contextPath}";
+	const urlParams = new URLSearchParams(window.location.search);
+	const orderId = urlParams.get('orderId');
+	const detailContentArea = document.getElementById('detailContentArea');
+	const pageTitle = document.getElementById('pageTitle');
+	const actionButtons = document.getElementById('actionButtons');
+
+	function formatDate(dateString) {
+		if (!dateString)
+			return "-";
+		let dateInput = dateString;
+		if (typeof dateString === 'string' && /^\d+$/.test(dateString)) {
+			dateInput = parseInt(dateString, 10);
+		}
+		const date = new Date(dateInput);
+		if (isNaN(date.getTime()))
+			return "-";
+		const year = String(date.getFullYear());
+		const month = String(date.getMonth() + 1).padStart(2, '0');
+		const day = String(date.getDate()).padStart(2, '0');
+		return year + "년 " + month + "월 " + day + "일";
+	}
+
+	function formatPrice(price) {
+		if (price === undefined || price === null)
+			return "0원";
+		return price.toLocaleString() + "원";
+	}
+	
+	function formatQuantity(quantity) {
+        if (quantity === undefined || quantity === null) return "0개";
+        return quantity.toLocaleString() + "개"; 
+    }
+
+	function getStatusClass(status) {
+		if (status === "배송완료") return "status-completed";
+		if (status === "배송준비중" || status === "배송중") return "status-preparing";
+		if (status === "취소") return "status-cancelled";
+		return "status-default";
+	}
+
+	async function loadOrderDetail() {
+		if (!orderId) {
+			detailContentArea.innerHTML = '<h2>주문 번호가 없습니다.</h2>';
+			return;
+		}
+
+		try {
+			const response = await fetch(contextPath + "/order/detail?orderId=" + orderId, {
+				method : 'GET',
+				headers : {
+					'Content-Type' : 'application/json'
+				}
+			});
+
+			if (response.ok) {
+				const json = await response.json();
+				const detailData = json.data;
+
+				if (detailData && detailData.order) {
+					renderOrderDetail(detailData);
+				} else {
+					detailContentArea.innerHTML = '<h2>⚠️ 주문 정보를 찾을 수 없습니다.</h2>';
+				}
+			} else if (response.status === 401) {
+				alert("로그인이 필요합니다.");
+				window.location.href = contextPath + "/views/login.jsp";
+			} else {
+				const errorData = await response.json();
+				throw new Error(errorData.message || "주문 상세 로드 실패");
+			}
+		} catch (error) {
+			console.error("주문 상세 로드 오류:", error);
+			detailContentArea.innerHTML = `<h2>오류 발생</h2><p>\${error.message || 'API 통신 오류'}</p>`;
+		}
+	}
+	
+	async function cancelOrder(orderId) {
+        if (!confirm("정말로 해당 주문을 취소하시겠습니까?")) return;
+
+        try {
+            const response = await fetch(contextPath + "/order/cancel", {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ orderId: orderId })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                alert("주문이 성공적으로 취소되었습니다.");
+                loadOrderDetail();
+            } else {
+                alert("주문 취소 실패: " + (result.message || "알 수 없는 오류"));
+            }
+        } catch (error) {
+           	console.error("주문 취소 중 오류:", error);
+            alert("통신 오류가 발생했습니다.");
+        }
+    }
+
+	function renderOrderDetail(data) {
+		const order = data.order;
+		const items = data.items || [];
+
+		const deliveryStatus = order.deliveryStatus;
+		const statusClass = getStatusClass(deliveryStatus);
+
+		let dateInfoHtml = '';
+		const estimatedDate = formatDate(order.estimatedDeliveryDate);
+		const actualDate = order.actualDeliveryDate ? formatDate(order.actualDeliveryDate) : "미도착";
+
+		if (deliveryStatus === "배송완료") {
+			dateInfoHtml = `<p><strong>도착 완료일:</strong> \${actualDate}</p>`;
+		} else if (deliveryStatus === "취소") {
+			dateInfoHtml = `<p><strong>주문 상태:</strong> <span class="status-cancelled">주문이 취소되었습니다.</span></p>`;
+		} else {
+			dateInfoHtml = `<p><strong>도착 예정일:</strong> \${estimatedDate}</p>`;
+		}
+
+		let tableBodyHtml = '';
+		if (items.length === 0) {
+			tableBodyHtml = '<tr><td colspan="5" style="text-align: center;">주문 상품 정보가 없습니다.</td></tr>';
+		} else {
+			items.forEach(function(item) {
+                const itemTotalPrice = item.orderPrice * item.quantity;
+
+                tableBodyHtml += '<tr>';
+                tableBodyHtml += '<td>';
+                const imageUrl = item.productImage || contextPath + '/resources/images/no-image.png'; 
+                tableBodyHtml += '<img src="' + imageUrl + '" alt="' + item.productName + '" class="item-image" onerror="this.src=\'' + contextPath + '/resources/images/no-image.png\'">';
+                tableBodyHtml += '</td>';
+
+                tableBodyHtml += '<td>' + item.productName + '</td>';
+                tableBodyHtml += '<td>' + formatPrice(item.orderPrice) + '</td>';
+                tableBodyHtml += '<td>' + formatQuantity(item.quantity) + '</td>';
+                tableBodyHtml += '<td>' + formatPrice(itemTotalPrice) + '</td>';
+                tableBodyHtml += '</tr>';
+            });
+		}
+
+		let fullHtml =
+			'<div class="order-summary">' +
+				'<h3>주문 정보</h3>' +
+				'<p><strong>주문 번호:</strong> #' + order.orderId + '</p>' +
+				'<p><strong>주문 일자:</strong> ' + formatDate(order.orderDate) + '</p>' +
+				'<p><strong>배송 상태:</strong> ' +
+					'<span class="' + statusClass + '">' + deliveryStatus + '</span>' +
+				'</p>' +
+			'</div>' +
+
+			'<div class="delivery-info">' +
+				'<h3>배송지 정보</h3>' +
+				'<p><strong>수령 주소:</strong> ' + order.deliveryAddress + '</p>' +
+				dateInfoHtml +
+			'</div>' +
+
+			'<div class="item-list-header">' +
+				'<h3>주문 상품</h3>' +
+				'<table class="item-list-table">' +
+					'<thead>' +
+						'<tr>' +
+							'<th style="width: 20%;">상품 이미지</th>' +
+							'<th style="width: 40%;">상품명</th>' +
+							'<th style="width: 15%;">단가</th>' +
+							'<th style="width: 10%;">수량</th>' +
+							'<th style="width: 15%;">총 금액</th>' +
+						'</tr>' +
+					'</thead>' +
+					'<tbody>' +
+						tableBodyHtml +
+					'</tbody>' +
+				'</table>' +
+			'</div>' +
+
+			'<div class="total-section">' +
+				'최종 결제 금액: ' + formatPrice(order.totalPrice) +
+			'</div>';
+
+		detailContentArea.innerHTML = fullHtml;
+		
+		const cancelButton = document.createElement('button');
+        cancelButton.className = 'cancel-button';
+        cancelButton.textContent = '주문 취소';
+        cancelButton.onclick = () => cancelOrder(order.orderId);
+
+        const existingCancelBtn = actionButtons.querySelector('.cancel-button');
+        if (existingCancelBtn) {
+            existingCancelBtn.remove();
+        }
+
+        if (deliveryStatus === '주문완료') {
+            actionButtons.appendChild(cancelButton); 
+        }
+	}
+
+	document.addEventListener('DOMContentLoaded', loadOrderDetail);
+</script>
 </html>

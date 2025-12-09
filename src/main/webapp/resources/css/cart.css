@@ -49,15 +49,23 @@ header {
 }
 
 .cart-container {
-	width: 900px;
+	width: 70%;
 	margin: 40px auto;
 }
 
 .cart-title {
-	font-size: 26px;
+	font-size: 24px;
 	font-weight: 700;
 	color: var(--text-color);
-	margin-bottom: 20px;
+	margin-bottom: 25px;
+	padding-bottom: 15px;
+	border-bottom: 2px solid var(--main-color);
+	text-align: left;
+}
+
+.cart-title::before {
+	content: '🛒';
+	margin-right: 10px;
 }
 
 .cart-table-box {

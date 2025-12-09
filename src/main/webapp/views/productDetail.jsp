@@ -98,7 +98,7 @@
 	        currentProductId = productId;
 	        
 	        if (productId === null) {
-	            alert('유효하지 않은 상품 ID입니다.');
+	            alert('유효하지 않은 상품입니다.');
 	            window.location.href = "${pageContext.request.contextPath}/index.jsp";
 	            return;
 	        }
@@ -112,11 +112,10 @@
 	            if (response.ok) {
 	                renderProductData(data);
 	            } else {
-	                alert(`[오류 ${data.status || response.status}]: ${data.message || '상품 정보를 불러오는 데 실패했습니다.'}`);
+	                alert("상품 정보를 불러오는 데 실패했습니다.");
 	                window.location.href = "${pageContext.request.contextPath}/index.jsp";
 	            }
 	        } catch (error) {
-	            console.error('API 통신 오류:', error);
 	            window.location.href = "${pageContext.request.contextPath}/index.jsp";
 	        }
 	    }
@@ -136,7 +135,7 @@
                 quantityInput.disabled = true;
                 document.querySelector('.btn-cart').disabled = true;
                 document.querySelector('.btn-buy').disabled = true;
-                alert("현재 상품은 품절입니다.");
+                alert("현재 상품이 품절되었습니다.");
             } else {
                 quantityInput.disabled = false;
                 document.querySelector('.btn-cart').disabled = false;
@@ -158,10 +157,24 @@
 	        
 	        const meanRating = product.meanRating || 0.0;
 	        const reviewCount = product.reviewCount || 0;
-	        rating.textContent = "⭐ " + meanRating.toFixed(2) + "점";
+            
+            if (reviewCount > 0) {
+                rating.textContent = "⭐ " + meanRating.toFixed(2) + "점";
+                rating.style.display = 'block';
+            } else {
+                rating.textContent = "";
+                rating.style.display = 'none';
+            }
+            
 	        review.textContent = "총 " + reviewCount + "개 리뷰";
 	        
-	        renderRatingDetails(product.ratingDetail);
+            if (reviewCount > 0) {
+                renderRatingDetails(product.ratingDetail);
+                detailRatingSummary.style.display = 'flex';
+            } else {
+                detailRatingSummary.innerHTML = '';
+                detailRatingSummary.style.display = 'none';
+            }
 	        
 	        updateTotalPrice();
 	    }
@@ -248,17 +261,21 @@
                         console.log("장바구니 담기 완료. 현재 페이지에 머무릅니다.");
                     }
                 } else if (response.status === 401) {
-                    alert("로그인이 필요합니다. 로그인 페이지로 이동합니다.");
-                    window.location.href = "${pageContext.request.contextPath}/views/login.jsp";
+                	alert("로그인이 필요합니다.");
+                    const currentUrl = window.location.href;
+                    const encodedUrl = encodeURIComponent(currentUrl);
+                    
+                    window.location.href = '${pageContext.request.contextPath}/views/login.jsp?redirect=' + encodedUrl;
+                    return;
 
                 } else {
                     const errorData = await response.json().catch(() => ({}));
-                    alert("장바구니 담기 실패: " + (errorData.message || "서버 오류가 발생했습니다."));
+                    alert("장바구니 담기를 실패했습니다.");
                 }
 
             } catch (error) {
                 console.error('장바구니 API 통신 오류:', error);
-                alert("통신 중 오류가 발생했습니다.");
+                alert("장바구니 담기를 실패했습니다.");
             }
         }
 	    

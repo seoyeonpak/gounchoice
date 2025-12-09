@@ -129,7 +129,7 @@ public class OrderServlet extends HttpServlet {
 					throw new IllegalArgumentException("상품 정보가 없습니다.");
 
 				resultId = orderService.createOrder(userId, productId, quantity, addr1, p.getPrice(),
-						p.getProductName());
+						p.getProductName(), p.getProductImage());
 				message = "주문이 완료되었습니다.";
 				break;
 

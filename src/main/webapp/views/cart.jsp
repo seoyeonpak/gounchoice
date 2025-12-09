@@ -7,10 +7,10 @@
 <title>고운선택 - 장바구니 페이지</title>
 <link rel="stylesheet"
 	href="${pageContext.request.contextPath}/resources/css/cart.css">
-<link rel="icon" type="image/x-icon"
-	href="${pageContext.request.contextPath}/resources/images/favicon.png">
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="icon" type="image/x-icon"
+	href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
 <body>
 
@@ -257,7 +257,6 @@
 		            console.error("장바구니 로드 중 오류 발생:", error);
 		            
 		            if (error.message.includes("로그인이 필요")) {
-		                alert("세션 만료 또는 로그인 오류로 장바구니 정보를 불러올 수 없습니다. 로그인 페이지로 이동합니다.");
 		                location.href = "${pageContext.request.contextPath}/views/login.jsp";
 		                return;
 		            }
@@ -310,7 +309,7 @@
 
 	        } catch (error) {
 	            console.error("수량 변경 오류:", error);
-	            alert("수량 변경에 실패했습니다: " + error.message);
+	            alert("수량 변경에 실패했습니다");
 	            loadCart();
 	        }
 	    }
@@ -355,7 +354,7 @@
                 updateCheckAllStatus();
 	        } catch (error) {
 	            console.error("상품 삭제 오류:", error);
-	            alert("상품 삭제에 실패했습니다: " + error.message);
+	            alert("상품 삭제에 실패했습니다");
 	        }
 	    }
 	
@@ -413,7 +412,7 @@
 	
 	        } catch (error) {
 	            console.error("선택 상품 삭제 오류:", error);
-	            alert("선택 상품 삭제에 실패했습니다: " + error.message);
+	            alert("선택 상품 삭제에 실패했습니다");
 	            loadCart();
 	        }
 	    }

@@ -108,12 +108,12 @@ public class ProductService {
 	// =======================================================
 	// 3. 추천 상품 조회
 	// =======================================================
-	public List<Product> getRecommendProducts() {
+	public List<Product> getRecommendProducts(int userId) {
 		Connection conn = JDBCTemplate.getConnection();
 		List<Product> list = new ArrayList<>();
 
 		try {
-			list = productDao.selectRecommendProducts(conn);
+			list = productDao.selectRecommendProducts(conn, userId);
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {

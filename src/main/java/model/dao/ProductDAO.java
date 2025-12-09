@@ -4,9 +4,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import common.JDBCTemplate;
 import model.vo.Product;
@@ -236,7 +239,7 @@ public class ProductDAO {
 		ResultSet rs = null;
 
 		String sql = "SELECT p.*, " + "COALESCE(r.REVIEW_COUNT, 0) AS REVIEW_COUNT, "
-				+ "COALESCE(r.AVERAGE_SCORE, 0.0) AS MEAN_RATING " + "FROM PRODUCT p "
+				+ "COALESCE(r.AVERAGE_SCORE, 0.0) AS AVERAGE_SCORE " + "FROM PRODUCT p "
 				+ "LEFT JOIN OVERALL_RATING r ON p.PRODUCT_ID = r.PRODUCT_ID " + "WHERE p.PRODUCT_ID = ?";
 
 		try {
@@ -245,20 +248,7 @@ public class ProductDAO {
 			rs = pstmt.executeQuery();
 
 			if (rs.next()) {
-				// product = mapProduct(rs);
-				// 간단하게 mapProduct 재사용 해도 될 것 같아서 넣어봤는데 MEAN_RATING이랑 AVERAGE_SCORE가 안맞네요 주석처리
-				// 했습니닷
-				product = new Product();
-				product.setProductId(rs.getInt("PRODUCT_ID"));
-				product.setCategoryId(rs.getInt("CATEGORY_ID"));
-				product.setProductName(rs.getString("PRODUCT_NAME"));
-				product.setProductDescription(rs.getString("PRODUCT_DESCRIPTION"));
-				product.setProductImage(rs.getString("PRODUCT_IMAGE"));
-				product.setPrice(rs.getInt("PRICE"));
-				product.setStockQuantity(rs.getInt("STOCK_QUANTITY"));
-
-				product.setReviewCount(rs.getInt("REVIEW_COUNT"));
-				product.setMeanRating(rs.getDouble("MEAN_RATING"));
+				product = mapProduct(rs);
 			}
 		} finally {
 			JDBCTemplate.close(rs);
@@ -336,37 +326,132 @@ public class ProductDAO {
 		return result;
 	}
 
-	// [추가 3] 추천 상품 조회 (랜덤 4개로 일단은 설정) /product/recommend 대응
-	// [수정] 추천 상품 조회 (mapProduct 재사용)
-	public List<Product> selectRecommendProducts(Connection conn) {
+	/**
+	 * [수정] 유사 구매 사용자 기반 협업 필터링으로 추천 상품 조회
+	 */
+	public List<Product> selectRecommendProducts(Connection conn, int userId) {
 		List<Product> list = new ArrayList<>();
 		PreparedStatement pstmt = null;
 		ResultSet rs = null;
 
-		// [변경] mapProduct가 요구하는 평점/리뷰수 컬럼을 확보하기 위해 JOIN 추가
-		String sql = "SELECT * FROM (" + "    SELECT p.*, r.AVERAGE_SCORE, r.REVIEW_COUNT " + "    FROM PRODUCT p "
-				+ "    LEFT JOIN OVERALL_RATING r ON p.PRODUCT_ID = r.PRODUCT_ID " + "    ORDER BY dbms_random.value" // 랜덤
-																														// 정렬
-				+ ") WHERE ROWNUM <= 4";
-
 		try {
-			pstmt = conn.prepareStatement(sql);
-			rs = pstmt.executeQuery();
-
-			while (rs.next()) {
-				// [변경] 일일이 setter를 부르는 대신 mapProduct 재사용 & 예외 처리
-				try {
-					list.add(mapProduct(rs));
-				} catch (Exception e) {
-					System.out.println("추천 상품 매핑 오류: " + e.getMessage());
+			// 1. 대상 사용자가 구매한 상품 ID 목록 조회
+			Set<Integer> userProducts = new HashSet<>();
+			String sqlUserProducts = "SELECT oi.product_id " +
+									 "FROM order_item oi, orders o " +
+									 "WHERE oi.order_id = o.order_id " +
+									 "AND o.user_id = ?";
+			try (PreparedStatement pstmtUserProducts = conn.prepareStatement(sqlUserProducts)) {
+				pstmtUserProducts.setInt(1, userId);
+				try (ResultSet rsUserProducts = pstmtUserProducts.executeQuery()) {
+					while (rsUserProducts.next()) {
+						userProducts.add(rsUserProducts.getInt("product_id"));
+					}
 				}
 			}
+
+			if (userProducts.isEmpty()) {
+				System.out.println("이 사용자(ID: " + userId + ")는 구매한 상품이 없습니다. 추천이 불가합니다.");
+				return list;
+			}
+
+			// 2. 대상 사용자와 같은 상품을 구매한 적 있는 다른 사용자 ID 목록 조회
+			Set<Integer> otherUsers = new HashSet<>();
+			// 이 쿼리는 'userProducts'에 있는 상품 중 하나라도 구매한 적 있는 다른 사용자를 찾음
+			String sqlOtherUsers = "SELECT DISTINCT o.user_id " +
+								   "FROM order_item oi, orders o " +
+								   "WHERE oi.order_id = o.order_id " +
+								   "AND oi.product_id IN (" + String.join(",", Collections.nCopies(userProducts.size(), "?")) + ") " +
+								   "AND o.user_id != ?";
+			
+			try (PreparedStatement pstmtOtherUsers = conn.prepareStatement(sqlOtherUsers)) {
+				int index = 1;
+				for (int pid : userProducts) {
+					pstmtOtherUsers.setInt(index++, pid);
+				}
+				pstmtOtherUsers.setInt(index, userId);
+				
+				try (ResultSet rsOtherUsers = pstmtOtherUsers.executeQuery()) {
+					while (rsOtherUsers.next()) {
+						otherUsers.add(rsOtherUsers.getInt("user_id"));
+					}
+				}
+			}
+
+			if (otherUsers.isEmpty()) {
+				System.out.println("같은 상품을 구매한 다른 사용자가 없습니다. 추천이 불가합니다.");
+				return list;
+			}
+
+			// 3. 추천 후보 상품 ID 목록 조회 (유사 사용자들이 구매했으나 대상 사용자가 구매하지 않은 상품)
+			Set<Integer> recommendedProductIds = new HashSet<>();
+			// IN 절을 위한 상품 ID 플레이스홀더 문자열
+			String productPlaceholders = String.join(",", Collections.nCopies(userProducts.size(), "?"));
+			// IN 절을 위한 유사 사용자 ID 플레이스홀더 문자열
+			String userPlaceholders = String.join(",", Collections.nCopies(otherUsers.size(), "?"));
+
+			// 유사 사용자 ID를 IN 절로 사용하여 한 번에 조회하도록 쿼리 최적화
+			String sqlCandidate = String.format(
+					"SELECT DISTINCT oi.product_id " +
+					"FROM order_item oi " +
+					"JOIN orders o ON oi.order_id = o.order_id " +
+					"WHERE o.user_id IN (%s) " + // 유사 사용자들이 구매한 상품
+					"AND oi.product_id NOT IN (%s)", userPlaceholders, productPlaceholders); // 대상 사용자가 구매하지 않은 상품
+			
+			try (PreparedStatement pstmtCandidate = conn.prepareStatement(sqlCandidate)) {
+				int index = 1;
+				// 1. 유사 사용자 ID 바인딩
+				for (int uid : otherUsers) {
+					pstmtCandidate.setInt(index++, uid);
+				}
+				// 2. 대상 사용자의 구매 상품 ID 바인딩
+				for (int pid : userProducts) {
+					pstmtCandidate.setInt(index++, pid);
+				}
+				
+				try (ResultSet rsCandidate = pstmtCandidate.executeQuery()) {
+					while (rsCandidate.next()) {
+						recommendedProductIds.add(rsCandidate.getInt("product_id"));
+					}
+				}
+			}
+
+			if (recommendedProductIds.isEmpty()) {
+				System.out.println("추천할 상품이 없습니다.");
+				return list;
+			}
+
+			// 4. 추천 후보 상품들의 상세 정보(Product 객체) 조회
+			String recommendedPlaceholders = String.join(",", Collections.nCopies(recommendedProductIds.size(), "?"));
+			String sqlNames = "SELECT p.*, r.AVERAGE_SCORE, r.REVIEW_COUNT " +
+							  "FROM PRODUCT p " +
+							  "LEFT JOIN OVERALL_RATING r ON p.PRODUCT_ID = r.PRODUCT_ID " +
+							  "WHERE p.PRODUCT_ID IN (" + recommendedPlaceholders + ")";
+			
+			try (PreparedStatement pstmtNames = conn.prepareStatement(sqlNames)) {
+	            int index = 1;
+	            for (int pid : recommendedProductIds) {
+	                pstmtNames.setInt(index++, pid);
+	            }
+
+	            try (ResultSet rsNames = pstmtNames.executeQuery()) {
+	                while (rsNames.next()) {
+	                    try {
+	                        list.add(mapProduct(rsNames));
+	                    } catch (Exception e) {
+	                        System.out.println("추천 상품 매핑 오류: " + e.getMessage());
+	                    }
+	                }
+	            }
+	        }
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			close(rs);
 			close(pstmt);
 		}
+		
 		return list;
 	}
 

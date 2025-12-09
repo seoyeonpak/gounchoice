@@ -128,9 +128,6 @@ public class UserUpdateServlet extends HttpServlet {
 
 				// 기존 비밀번호 확인은 DAO 쿼리(WHERE ... AND password=?)에서 처리됨
 				result = service.updatePassword(userId, oldPw, newPw);
-				if (result > 0) {
-					loginUser.setPassword(newPw);
-				}
 				break;
 			}
 

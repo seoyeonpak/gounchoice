@@ -20,13 +20,14 @@ public class OrdersDAO {
 		int orderId = 0;
 
 		// Oracle IDENTITY 사용 (user_id, total_price, delivery_address, delivery_status)
-		String sql = "INSERT INTO ORDERS (user_id, total_price, delivery_address, delivery_status) VALUES (?, ?, ?, 'ORDERED')";
+		String sql = "INSERT INTO ORDERS (user_id, total_price, delivery_address, delivery_status, estimated_delivery_date) VALUES (?, ?, ?, '주문완료', ?)";
 
 		try {
 			pstmt = conn.prepareStatement(sql, new String[] { "order_id" });
 			pstmt.setInt(1, order.getUserId());
 			pstmt.setInt(2, order.getTotalPrice());
-			pstmt.setString(3, order.getDeliveryAddress()); // VO 필드명 반영
+			pstmt.setString(3, order.getDeliveryAddress());
+			pstmt.setDate(4, java.sql.Date.valueOf(java.time.LocalDate.now().plusDays(5)));
 
 			pstmt.executeUpdate();
 
@@ -146,7 +147,7 @@ public class OrdersDAO {
 				item.setQuantity(rs.getInt("quantity"));
 				item.setOrderPrice(rs.getInt("order_price"));
 				item.setProductName(rs.getString("product_name"));
-				// item.setProductImage(rs.getString("product_image")); // VO에 필드가 있다면 주석 해제
+				item.setProductImage(rs.getString("product_image"));
 
 				list.add(item);
 			}

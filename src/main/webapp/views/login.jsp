@@ -47,6 +47,9 @@
                 "email": email,
                 "password": password
             };
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectUrl = urlParams.get('redirect');
 
             fetch('${pageContext.request.contextPath}/user/login', {
                 method: 'POST',
@@ -57,17 +60,21 @@
             })
             .then(async response => {
                 if (response.status === 200) {
-                    window.location.href = "../index.jsp"; 
+                	if (redirectUrl) {
+                        window.location.href = decodeURIComponent(redirectUrl);
+                    } else {
+                        window.location.href = "../index.jsp"; 
+                    }
                 } else if (response.status === 400) {
                     const errorData = await response.json();
-                    alert(errorData.message);
+                    alert("로그인 실패했습니다.");
                 } else {
-                    alert("서버 오류가 발생했습니다.");
+                    alert("로그인 실패했습니다.");
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert("통신 중 오류가 발생했습니다.");
+                alert("로그인 실패했습니다.");
             });
         });
     </script>

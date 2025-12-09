@@ -187,8 +187,7 @@
             })
             .catch(error => {
                 console.error('AJAX/Fetch 오류:', error);
-                const errorMessage = error.message || "통신 중 오류가 발생했습니다.";
-                alert(errorMessage);
+                alert("회원가입에 실패했습니다.");
             });
         });
     </script>

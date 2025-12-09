@@ -24,7 +24,7 @@ public class OrderService {
 	// 1. 바로 구매 (상품 1개)
 	// - 로직: 재고체크 -> 재고차감 -> 주문생성 -> 상세생성
 	// =======================================================
-	public int createOrder(int userId, int productId, int quantity, String address, int price, String productName) {
+	public int createOrder(int userId, int productId, int quantity, String address, int price, String productName, String productImage) {
 		Connection conn = JDBCTemplate.getConnection();
 		int orderId = 0;
 
@@ -51,7 +51,7 @@ public class OrderService {
 			// 4) 주문 상세 생성 (Insert OrderItem)
 			if (orderId > 0) {
 				// 5개 인자 생성자 사용 (orderId, productId, quantity, orderPrice, productName)
-				OrderItem item = new OrderItem(orderId, productId, quantity, price, productName);
+				OrderItem item = new OrderItem(orderId, productId, quantity, price, productName, productImage);
 				oDao.insertOrderItem(conn, item);
 
 				JDBCTemplate.commit(conn); // 성공 시 커밋
@@ -111,7 +111,7 @@ public class OrderService {
 
 					// 주문 상세 기록
 					OrderItem orderItem = new OrderItem(orderId, item.getProductId(), item.getQuantity(),
-							item.getPrice(), item.getProductName());
+							item.getPrice(), item.getProductName(), item.getProductImage());
 					oDao.insertOrderItem(conn, orderItem);
 				}
 
@@ -172,7 +172,7 @@ public class OrderService {
 					pDao.updateStock(conn, item.getProductId(), -item.getQuantity());
 
 					OrderItem orderItem = new OrderItem(orderId, item.getProductId(), item.getQuantity(),
-							item.getPrice(), item.getProductName());
+							item.getPrice(), item.getProductName(), item.getProductImage());
 					oDao.insertOrderItem(conn, orderItem);
 				}
 
@@ -203,7 +203,7 @@ public class OrderService {
 
 		try {
 			// 1) 주문 상태 변경
-			result = oDao.updateOrderStatus(conn, orderId, "CANCELLED");
+			result = oDao.updateOrderStatus(conn, orderId, "취소");
 
 			if (result > 0) {
 				// 2) 어떤 상품을 몇 개 샀었는지 조회 (재고 복구를 위해)

@@ -63,16 +63,16 @@
 	        } else {
 	            response.json().then(errorData => {
 	                console.error('로그아웃 실패 (서버 응답):', errorData.message || '알 수 없는 서버 오류');
-	                alert('로그아웃에 실패했습니다: ' + (errorData.message || '서버 오류'));
+	                alert('로그아웃에 실패했습니다');
 	            }).catch(() => {
 	                console.error('로그아웃 실패: 상태 코드 ' + response.status);
-	                alert('로그아웃에 실패했습니다: 상태 코드 ' + response.status);
+	                alert('로그아웃에 실패했습니다');
 	            });
 	        }
 	    })
 	    .catch(error => {
 	        alert('네트워크 오류로 로그아웃에 실패했습니다.');
-	        console.error('AJAX 통신 오류:', error);
+	        alert('로그아웃에 실패했습니다');
 	    });
 	}
 	
@@ -95,7 +95,7 @@
 	    linkMypage.textContent = '마이페이지';
 	    
 	    const linkOrders = document.createElement('a');
-	    linkOrders.href = `${pageContext.request.contextPath}/views/orderList.jsp`;
+	    linkOrders.href = `${pageContext.request.contextPath}/views/order.jsp`;
 	    linkOrders.textContent = '주문 목록';
 	    
 	    const linkCart = document.createElement('a');

@@ -348,21 +348,21 @@
 	
 	    function validatePaymentForm(address, cardNumber, expiryDate, cvc) {
 	        if (!address.trim()) {
-	            alert("📦 배송지를 입력해주세요.");
+	            alert("배송지를 입력해주세요.");
 	            document.getElementById('deliveryAddress').focus();
 	            return false;
 	        }
 	
 	        const cleanCardNumber = cardNumber.replace(/[^0-9]/g, ''); 
 	        if (cleanCardNumber.length !== 16 || !/^\d{16}$/.test(cleanCardNumber)) {
-	            alert("💳 카드 번호 16자리를 정확히 입력해주세요.");
+	            alert("카드 번호 16자리를 정확히 입력해주세요.");
 	            document.getElementById('cardNumber').focus();
 	            return false;
 	        }
 	
 	        const expiryMatch = expiryDate.match(/^(\d{2})\/(\d{2})$/);
 	        if (!expiryMatch) {
-	            alert("📅 만료일은 MM/YY 형식(예: 05/28)으로 입력해주세요.");
+	            alert("만료일은 MM/YY 형식으로 입력해주세요.");
 	            document.getElementById('expiryDate').focus();
 	            return false;
 	        }
@@ -370,7 +370,7 @@
 	        const month = parseInt(expiryMatch[1], 10);
 	        const year = parseInt(expiryMatch[2], 10);
 	        if (month < 1 || month > 12) {
-	             alert("📅 만료일의 월(MM)은 01부터 12 사이의 값이어야 합니다.");
+	             alert("만료일의 월(MM)은 01부터 12 사이의 값이어야 합니다.");
 	             document.getElementById('expiryDate').focus();
 	             return false;
 	        }
@@ -380,19 +380,19 @@
 	        const currentMonth = now.getMonth() + 1;
 
 	        if (year < currentYear) {
-	            alert("📅 카드가 이미 만료되었습니다. 유효한 만료일을 입력해주세요.");
+	            alert("카드가 이미 만료되었습니다. 유효한 만료일을 입력해주세요.");
 	            document.getElementById('expiryDate').focus();
 	            return false;
 	        }
 
 	        if (year === currentYear && month < currentMonth) {
-	            alert("📅 카드가 이미 만료되었습니다. 유효한 만료일을 입력해주세요.");
+	            alert("카드가 이미 만료되었습니다. 유효한 만료일을 입력해주세요.");
 	            document.getElementById('expiryDate').focus();
 	            return false;
 	        }
 	
 	        if (!/^\d{3}$/.test(cvc)) {
-	            alert("🔐 CVC는 카드 뒷면의 3자리 숫자만 입력해주세요.");
+	            alert("CVC는 카드 뒷면의 3자리 숫자만 입력해주세요.");
 	            document.getElementById('cvc').focus();
 	            return false;
 	        }
@@ -423,8 +423,8 @@
 	            return false;
 	        }
 	        
-	        let apiUrl = contextPath + "/order/checkout";
-            let requestBody = { address: address, productIds: selectedItemIds };
+	        let apiUrl;
+            let requestBody;
 
             if (mode === 'direct') {
                 apiUrl = contextPath + "/order/create";
@@ -433,8 +433,13 @@
                     quantity: parseInt(directQuantity),
                     address: address
                 };
+            } else {
+                apiUrl = contextPath + "/order/checkout";
+                requestBody = {
+                    address: address,
+                    productIds: selectedItemIds
+                };
             }
-
 	        try {
 	            const orderResponse = await fetch(apiUrl, {
 	                method: 'POST',
@@ -445,7 +450,7 @@
 	            if (!orderResponse.ok) {
 	            	const errorData = await orderResponse.json().catch(() => ({}));
 	                console.error('주문 생성 실패 (API):', errorData.message || '알 수 없는 서버 오류');
-	                alert("결제 또는 주문 처리에 실패했습니다: " + (errorData.message || '서버 오류가 발생했습니다. (재고 부족 등)'));
+	                alert("결제에 실패했습니다");
 	                throw new Error('API order failed.');
 	            }
 	            
@@ -453,15 +458,12 @@
 	            const orderId = orderResult.data.orderId || "N/A"; 
 
 	            console.log("주문 ID " + orderId + " 생성 성공.");
-	            
-	            alert("✅ 결제가 완료되었으며 주문이 성공적으로 접수되었습니다. (주문 번호: " + orderId + ")");
-	            
-	            location.href = contextPath + "/views/orderList.jsp"; 
+	            location.href = contextPath + "/views/order.jsp"; 
 
 	        } catch (error) {
 	        	console.error("결제 및 주문 처리 오류:", error);
 	            if (!error.message.startsWith('API order failed')) {
-	                alert("결제 또는 주문 처리에 실패했습니다: 네트워크 오류가 발생했습니다.");
+	                alert("결제에 실패했습니다.");
 	            }
 	        }
 
@@ -477,7 +479,7 @@
             
             Promise.all([
                 loadDefaultAddress(),
-                loadCheckoutItems()
+                loadItemsPromise
             ]).then(() => {
                 initializeDeliveryAddress();
             });
