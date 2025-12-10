@@ -1,0 +1,180 @@
+@charset "UTF-8";
+
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+body {
+	font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+	background-color: #F3EBE0;
+	color: #4b3832;
+}
+
+.container {
+	width: 70%;
+	margin: 40px auto;
+	padding: 0;
+	min-height: 500px;
+}
+
+h2 {
+	font-size: 24px;
+	font-weight: 700;
+	color: #4b3832;
+	margin-bottom: 25px;
+	padding-bottom: 15px;
+	border-bottom: 2px solid #AB9282;
+	text-align: left;
+}
+
+h2::before {
+	content: '✨';
+	margin-right: 10px;
+}
+
+h3 {
+	font-size: 18px;
+	font-weight: 600;
+	color: #4b3832;
+	margin-top: 20px;
+	margin-bottom: 15px;
+	border-left: 4px solid #AB9282;
+	padding-left: 12px;
+}
+
+#reviewForm {
+	width: 80%;
+	margin: 0 auto;
+}
+
+.product-info {
+	background-color: #faf7f2;
+	padding: 18px 20px;
+	border-radius: 6px;
+	margin-bottom: 30px;
+	font-size: 17px;
+	font-weight: 700;
+	color: #8b6b5e;
+	border: 1px solid #dcdcdc;
+}
+
+.review-section {
+	background-color: #FAF7F2;
+	border: 1px solid #dcdcdc;
+	border-radius: 6px;
+	padding: 10px 20px 0 20px;
+	margin-bottom: 10px;
+}
+
+.review-item {
+	padding: 15px 0;
+	border-bottom: 1px solid #e5e5e5;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.review-item:last-child {
+	border-bottom: none;
+}
+
+.question-area {
+	flex-grow: 1;
+	text-align: left;
+	padding-right: 20px;
+}
+
+.question-text {
+	font-size: 15px;
+	color: #4b3832;
+	font-weight: 500;
+	line-height: 1.4;
+}
+
+.rating-wrapper {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	width: 200px;
+	justify-content: flex-end;
+}
+
+.rating-stars {
+	display: flex;
+	flex-direction: row-reverse;
+	cursor: pointer;
+	width: 140px;
+	justify-content: flex-end;
+}
+
+.rating-stars>input {
+	display: none;
+}
+
+.rating-stars>img {
+	width: 25px;
+	height: 25px;
+	margin: 0 1px;
+	transition: transform 0.1s;
+}
+
+.score-display {
+	font-size: 18px;
+	font-weight: 700;
+	color: #AB9282;
+	margin-left: 20px;
+	width: 50px;
+	text-align: right;
+}
+
+.button-group {
+	text-align: center;
+	padding-top: 25px;
+}
+
+.action-button {
+	width: 160px;
+	padding: 14px 10px;
+	border: none;
+	border-radius: 6px;
+	font-size: 16px;
+	font-weight: 600;
+	cursor: pointer;
+	margin: 0 8px;
+	transition: background-color 0.2s, transform 0.2s;
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.submit-button {
+	background-color: #AB9282;
+	color: white;
+}
+
+.submit-button:hover {
+	background-color: #8b6855;
+	transform: translateY(-2px);
+}
+
+.cancel-button {
+	background-color: #e0e0e0;
+	color: #555;
+	border: 1px solid #ccc;
+}
+
+.cancel-button:hover {
+	background-color: #d0d0d0;
+	transform: translateY(-2px);
+}
+
+.delete-button {
+	background-color: #d9534f;
+	color: white;
+}
+
+.delete-button:hover {
+	background-color: #c0392b;
+	transform: translateY(-2px);
+}
