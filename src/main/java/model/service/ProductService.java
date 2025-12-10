@@ -86,6 +86,7 @@ public class ProductService {
 
 			// 응답 데이터 구성
 			response.put("productId", product.getProductId());
+			response.put("categoryId", product.getCategoryId());
 			response.put("productName", product.getProductName());
 			response.put("productDescription", product.getProductDescription());
 			response.put("price", product.getPrice());

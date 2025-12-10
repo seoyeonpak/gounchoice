@@ -78,22 +78,22 @@ span[class^="status-"] {
 }
 
 .status-completed {
-	background-color: #fceceb;
-	color: #AB9282;
+	background-color: #e6f9ee;
+	color: #2e8b57;
 }
 
 .status-preparing {
-	background-color: #e8f4fc;
-	color: #6d8ead;
+	background-color: #e8f5ff;
+	color: #1e6fb9;
 }
 
 .status-cancelled {
-	background-color: #fceceb;
+	background-color: #ffe9e9;
 	color: #d9534f;
 }
 
 .status-default {
-	background-color: #f5f5f5;
+	background-color: #f2f2f2;
 	color: #888;
 }
 
@@ -192,4 +192,43 @@ span[class^="status-"] {
 .cancel-button:hover {
 	background-color: #c0392b;
 	transform: translateY(-2px);
+}
+
+.item-review-btn {
+	display: inline-block;
+	padding: 8px 12px;
+	font-size: 13px;
+	font-weight: 700;
+	text-decoration: none;
+	border-radius: 4px;
+	transition: all 0.2s ease;
+	width: 100%;
+	white-space: nowrap;
+	text-align: center;
+}
+
+.btn-review-write {
+	background-color: #f0ebe4;
+	color: #AB9282;
+	border: 1px solid #AB9282;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.btn-review-write:hover {
+	background-color: #AB9282;
+	color: white;
+	transform: translateY(-1px);
+}
+
+.btn-review-modify {
+	background-color: #AB9282;
+	color: white;
+	border: 1px solid #8b6855;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.btn-review-modify:hover {
+	background-color: #8b6855;
+	color: #fff;
+	transform: translateY(-1px);
 }

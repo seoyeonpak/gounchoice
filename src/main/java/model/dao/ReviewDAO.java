@@ -4,6 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 import common.JDBCTemplate;
 import model.vo.Review;
@@ -84,6 +86,78 @@ public class ReviewDAO {
 		return result;
 	}
 
+	public Review selectUserReviewByProduct(Connection conn, int userId, int productId) {
+		Review review = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+
+		String sql = "SELECT review_id, user_id, product_id, created_at FROM REVIEW WHERE user_id = ? AND product_id = ?";
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, userId);
+			pstmt.setInt(2, productId);
+			rs = pstmt.executeQuery();
+
+			if (rs.next()) {
+				review = new Review(rs.getInt("review_id"), rs.getInt("user_id"), rs.getInt("product_id"),
+						rs.getDate("created_at"));
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			JDBCTemplate.close(rs);
+			JDBCTemplate.close(pstmt);
+		}
+		return review;
+	}
+
+	public List<ReviewContent> selectReviewContents(Connection conn, int reviewId) {
+		List<ReviewContent> contents = new ArrayList<>();
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+
+		String sql = "SELECT review_content_id, question, selected_option FROM REVIEW_CONTENT WHERE review_id = ? ORDER BY review_content_id ASC";
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, reviewId);
+			rs = pstmt.executeQuery();
+
+			while (rs.next()) {
+				ReviewContent rc = new ReviewContent();
+				rc.setReviewContentId(rs.getInt("review_content_id"));
+				rc.setReviewId(reviewId);
+				rc.setQuestion(rs.getString("question"));
+				rc.setSelectedOption(rs.getDouble("selected_option"));
+				contents.add(rc);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			JDBCTemplate.close(rs);
+			JDBCTemplate.close(pstmt);
+		}
+		return contents;
+	}
+
+	public int deleteReviewContents(Connection conn, int reviewId) {
+		PreparedStatement pstmt = null;
+		int result = 0;
+		String sql = "DELETE FROM REVIEW_CONTENT WHERE review_id = ?";
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, reviewId);
+			result = pstmt.executeUpdate();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			JDBCTemplate.close(pstmt);
+		}
+		return result;
+	}
+
 	// [중복 방지] 이미 해당 상품에 리뷰를 썼는지 확인
 	public int checkReviewExists(Connection conn, int userId, int productId) {
 		PreparedStatement pstmt = null;
@@ -105,5 +179,27 @@ public class ReviewDAO {
 			JDBCTemplate.close(pstmt);
 		}
 		return count;
+	}
+
+	public int checkReviewOwner(Connection conn, int reviewId, int userId) {
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		int reviewOwnerId = 0;
+		String sql = "SELECT user_id FROM REVIEW WHERE review_id = ?";
+
+		try {
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setInt(1, reviewId);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				reviewOwnerId = rs.getInt("user_id");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			JDBCTemplate.close(rs);
+			JDBCTemplate.close(pstmt);
+		}
+		return reviewOwnerId == userId ? 1 : 0;
 	}
 }

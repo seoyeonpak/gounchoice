@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
+<jsp:useBean id="loginUser" class="model.vo.Users" scope="session"/>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -29,6 +30,7 @@
 </body>
 <script>
 	const contextPath = "${pageContext.request.contextPath}";
+	const currentUserId = "${loginUser.userId}" ? parseInt("${loginUser.userId}") : 0;
 	const urlParams = new URLSearchParams(window.location.search);
 	const orderId = urlParams.get('orderId');
 	const detailContentArea = document.getElementById('detailContentArea');
@@ -128,13 +130,39 @@
             alert("통신 오류가 발생했습니다.");
         }
     }
+	
+	async function getReviewButtonHtml(productId) {
+		const reviewCheckUrl = contextPath + "/review/get?productId=" + productId + "&userId=" + currentUserId;
+	    
+	    try {
+	        const checkResponse = await fetch(reviewCheckUrl);
+	        const checkData = await checkResponse.json();
 
-	function renderOrderDetail(data) {
+	        const hasExistingReview = (checkData.code === "SUCCESS" && checkData.data.reviewId);
+	        
+	        let buttonText = hasExistingReview ? "리뷰 수정" : "리뷰 작성";
+	        let buttonClass = hasExistingReview ? "btn-review-modify" : "btn-review-write";
+	        
+	        const reviewIdParam = hasExistingReview ? '&reviewId=' + checkData.data.reviewId : '';
+	        const reviewPageUrl = contextPath + "/views/review.jsp?productId=" + productId + "&userId=" + currentUserId + reviewIdParam;
+
+	        return "<a href=\"" + reviewPageUrl + "\" class=\"" + buttonClass + " item-review-btn\" style=\"white-space: nowrap;\">"
+            + buttonText 
+            + "</a>";
+	        
+	    } catch (error) {
+	        console.error("리뷰 상태 확인 오류:", error);
+	    }
+	}
+
+	async function renderOrderDetail(data) {
 		const order = data.order;
 		const items = data.items || [];
 
 		const deliveryStatus = order.deliveryStatus;
 		const statusClass = getStatusClass(deliveryStatus);
+		
+		const isDelivered = deliveryStatus === "배송완료";
 
 		let dateInfoHtml = '';
 		const estimatedDate = formatDate(order.estimatedDeliveryDate);
@@ -147,27 +175,55 @@
 		} else {
 			dateInfoHtml = `<p><strong>도착 예정일:</strong> \${estimatedDate}</p>`;
 		}
+		
+		const itemImageWidth = isDelivered ? '15%' : '20%';
+        const productNameWidth = isDelivered ? '30%' : '35%';
+        const orderPriceWidth = isDelivered ? '15%' : '15%';
+        const quantityWidth = isDelivered ? '10%' : '10%';
+        const totalPriceWidth = isDelivered ? '15%' : '20%';
+        const reviewColumnWidth = '10%';
 
 		let tableBodyHtml = '';
-		if (items.length === 0) {
-			tableBodyHtml = '<tr><td colspan="5" style="text-align: center;">주문 상품 정보가 없습니다.</td></tr>';
-		} else {
-			items.forEach(function(item) {
-                const itemTotalPrice = item.orderPrice * item.quantity;
+		
+		const itemRowsPromises = items.map(async function(item) {
+	        const itemTotalPrice = item.orderPrice * item.quantity;
+	        
+	        let reviewButtonHtml = '';
+	        if (isDelivered) {
+	            reviewButtonHtml = await getReviewButtonHtml(item.productId);
+	        }
+	        
+	        let rowHtml = '<tr>';
+	        const imageUrl = item.productImage; 
+	        
+	        rowHtml += '<td>';
+	        rowHtml += '<img src="' + imageUrl + '" alt="' + item.productName + '" class="item-image">';
+	        rowHtml += '</td>';
 
-                tableBodyHtml += '<tr>';
-                tableBodyHtml += '<td>';
-                const imageUrl = item.productImage || contextPath + '/resources/images/no-image.png'; 
-                tableBodyHtml += '<img src="' + imageUrl + '" alt="' + item.productName + '" class="item-image" onerror="this.src=\'' + contextPath + '/resources/images/no-image.png\'">';
-                tableBodyHtml += '</td>';
+	        rowHtml += '<td>' + item.productName + '</td>';
+	        rowHtml += '<td>' + formatPrice(item.orderPrice) + '</td>';
+	        rowHtml += '<td>' + formatQuantity(item.quantity) + '</td>';
+	        rowHtml += '<td>' + formatPrice(itemTotalPrice) + '</td>';
+	        
+	        if (isDelivered) {
+	            rowHtml += '<td>' + reviewButtonHtml + '</td>';
+	        }
 
-                tableBodyHtml += '<td>' + item.productName + '</td>';
-                tableBodyHtml += '<td>' + formatPrice(item.orderPrice) + '</td>';
-                tableBodyHtml += '<td>' + formatQuantity(item.quantity) + '</td>';
-                tableBodyHtml += '<td>' + formatPrice(itemTotalPrice) + '</td>';
-                tableBodyHtml += '</tr>';
-            });
-		}
+	        rowHtml += '</tr>';
+	        return rowHtml;
+	    });
+		
+        const itemRowsHtml = await Promise.all(itemRowsPromises);
+        
+        const totalColumns = isDelivered ? 6 : 5; 
+        
+        if (items.length === 0) {
+            tableBodyHtml = '<tr><td colspan="' + totalColumns + '" style="text-align: center;">주문 상품 정보가 없습니다.</td></tr>';
+        } else {
+            tableBodyHtml = itemRowsHtml.join('');
+        }
+        
+        const reviewHeaderHtml = isDelivered ? '<th style="width: ' + reviewColumnWidth + ';"></th>' : '';
 
 		let fullHtml =
 			'<div class="order-summary">' +
@@ -190,11 +246,12 @@
 				'<table class="item-list-table">' +
 					'<thead>' +
 						'<tr>' +
-							'<th style="width: 20%;">상품 이미지</th>' +
-							'<th style="width: 40%;">상품명</th>' +
-							'<th style="width: 15%;">단가</th>' +
-							'<th style="width: 10%;">수량</th>' +
-							'<th style="width: 15%;">총 금액</th>' +
+							'<th style="width: ' + itemImageWidth + ';">상품 이미지</th>' +
+	                        '<th style="width: ' + productNameWidth + ';">상품명</th>' +
+	                        '<th style="width: ' + orderPriceWidth + ';">단가</th>' +
+	                        '<th style="width: ' + quantityWidth + ';">수량</th>' +
+	                        '<th style="width: ' + totalPriceWidth + ';">총 금액</th>' +
+							reviewHeaderHtml +
 						'</tr>' +
 					'</thead>' +
 					'<tbody>' +

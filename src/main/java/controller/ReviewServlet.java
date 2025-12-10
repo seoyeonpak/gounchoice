@@ -19,7 +19,7 @@ import model.service.ReviewService;
 import model.vo.ReviewContent;
 import model.vo.Users;
 
-@WebServlet({ "/review/write", "/review/delete" })
+@WebServlet({ "/review/write", "/review/delete", "/review/get", "/review/update" })
 public class ReviewServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
@@ -38,6 +38,74 @@ public class ReviewServlet extends HttpServlet {
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		processRequest(request, response);
+	}
+
+	// 리뷰 조회 (GET)
+	@Override
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		if ("/review/get".equals(request.getServletPath())) {
+			handleGetReview(request, response);
+		} else {
+			response.sendError(HttpServletResponse.SC_METHOD_NOT_ALLOWED);
+		}
+	}
+
+	// 리뷰 수정 (PUT)
+	@Override
+	protected void doPut(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		processRequest(request, response);
+	}
+
+	private void handleGetReview(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		request.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json; charset=UTF-8");
+
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> responseMap = new HashMap<>();
+
+		HttpSession session = request.getSession(false);
+		Users loginUser = (session != null) ? (Users) session.getAttribute("loginUser") : null;
+
+		int userId = (loginUser != null) ? loginUser.getUserId() : 0;
+
+		try {
+			String pIdStr = request.getParameter("productId");
+			if (pIdStr == null)
+				throw new IllegalArgumentException("상품 ID가 필요합니다.");
+
+			int productId = Integer.parseInt(pIdStr);
+
+			Map<String, Object> reviewData = reviewService.getReview(userId, productId);
+
+			if (reviewData == null) {
+				response.setStatus(HttpServletResponse.SC_OK);
+				responseMap.put("status", 200);
+				responseMap.put("code", "NO_REVIEWS");
+				responseMap.put("message", "리뷰가 존재하지 않습니다.");
+				responseMap.put("data", new HashMap<>());
+			} else {
+				response.setStatus(HttpServletResponse.SC_OK);
+				responseMap.put("status", 200);
+				responseMap.put("code", "SUCCESS");
+				responseMap.put("data", reviewData);
+			}
+
+		} catch (IllegalArgumentException e) {
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+			responseMap.put("status", 400);
+			responseMap.put("code", "INVALID_PARAMETER");
+			responseMap.put("message", e.getMessage());
+		} catch (Exception e) {
+			e.printStackTrace();
+			response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+			responseMap.put("status", 500);
+			responseMap.put("code", "SERVER_ERROR");
+			responseMap.put("message", "서버 내부 오류가 발생했습니다.");
+		}
+
+		mapper.writeValue(response.getWriter(), responseMap);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -72,56 +140,69 @@ public class ReviewServlet extends HttpServlet {
 			int result = 0;
 			String message = "";
 
-			if ("/review/write".equals(path)) {
-				// [리뷰 작성 로직]
-				Object pIdObj = requestData.get("productId");
-				if (pIdObj == null)
-					throw new IllegalArgumentException("상품 ID가 필요합니다.");
+			Object rIdObj = requestData.get("reviewId");
+			int reviewId = (rIdObj != null) ? Integer.parseInt(rIdObj.toString()) : 0;
 
-				int productId = Integer.parseInt(pIdObj.toString());
+			Object pIdObj = requestData.get("productId");
+			int productId = (pIdObj != null) ? Integer.parseInt(pIdObj.toString()) : 0;
 
-				List<Map<String, Object>> contentList = (List<Map<String, Object>>) requestData.get("contents");
-				List<ReviewContent> reviewContents = new ArrayList<>();
+			List<Map<String, Object>> contentList = (List<Map<String, Object>>) requestData.get("contents");
+			List<ReviewContent> reviewContents = new ArrayList<>();
 
-				if (contentList != null) {
-					for (Map<String, Object> map : contentList) {
-						ReviewContent rc = new ReviewContent();
-						rc.setQuestion((String) map.get("question"));
+			if (contentList != null) {
+				for (Map<String, Object> map : contentList) {
+					ReviewContent rc = new ReviewContent();
+					rc.setReviewId(reviewId); // reviewId를 미리 주입 (update에서 사용)
+					rc.setQuestion((String) map.get("question"));
 
-						Object scoreObj = map.get("selectedOption");
-						if (scoreObj != null) {
-							rc.setSelectedOption(Double.parseDouble(scoreObj.toString()));
-						}
-
-						reviewContents.add(rc);
+					Object scoreObj = map.get("selectedOption");
+					if (scoreObj != null) {
+						rc.setSelectedOption(((Number) scoreObj).doubleValue());
 					}
+
+					reviewContents.add(rc);
 				}
+			}
+
+			switch (path) {
+			case "/review/write":
+				if (productId == 0 || reviewContents.isEmpty())
+					throw new IllegalArgumentException("상품 ID와 리뷰 내용은 필수입니다.");
 
 				result = reviewService.writeReview(userId, productId, reviewContents);
 				message = "리뷰가 등록되었습니다.";
+				break;
 
-			} else if ("/review/delete".equals(path)) {
-				// [리뷰 삭제 로직]
-				Object rIdObj = requestData.get("reviewId");
-				if (rIdObj == null)
+			case "/review/update":
+				// 🌟🌟🌟 리뷰 업데이트 로직 🌟🌟🌟
+				if (reviewId == 0 || reviewContents.isEmpty())
+					throw new IllegalArgumentException("리뷰 ID와 수정 내용은 필수입니다.");
+
+				// ReviewService에 updateReview 메서드 추가 가정
+				result = reviewService.updateReview(reviewId, userId, reviewContents);
+				message = "리뷰가 수정되었습니다.";
+				break;
+
+			case "/review/delete":
+				if (reviewId == 0)
 					throw new IllegalArgumentException("리뷰 ID가 필요합니다.");
 
-				int reviewId = Integer.parseInt(rIdObj.toString());
 				result = reviewService.deleteReview(reviewId, userId);
 				message = "리뷰가 삭제되었습니다.";
+				break;
 			}
 
 			// 3. 응답 처리
 			if (result > 0) {
-				response.setStatus(HttpServletResponse.SC_OK); // 200 (또는 생성시 201)
+				response.setStatus(HttpServletResponse.SC_OK);
 				responseMap.put("status", 200);
-				responseMap.put("code", "SUCCESS"); // [추가] 성공 코드 통일
+				responseMap.put("code", "SUCCESS");
 				responseMap.put("message", message);
 			} else {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				responseMap.put("status", 400);
 				responseMap.put("code", "REQUEST_FAILED");
-				responseMap.put("message", "요청 처리에 실패했습니다. (중복 등록 등)");
+				responseMap.put("message", "요청 처리에 실패했습니다. (권한 없음, 중복 등록 등)");
 			}
 
 		} catch (IllegalArgumentException e) {

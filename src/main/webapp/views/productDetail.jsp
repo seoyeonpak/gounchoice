@@ -181,16 +181,6 @@
 
 	    function renderRatingDetails(ratings) {
 	        detailRatingSummary.innerHTML = '';
-	        
-	        if (!ratings || ratings.length === 0) {
-	            for (let i = 0; i < 5; i++) {
-	                const block = document.createElement('div');
-	                block.className = 'rating-block';
-	                block.textContent = '데이터 없음';
-	                detailRatingSummary.appendChild(block);
-	            }
-	            return;
-	        }
 	
 	        ratings.forEach(rating => {
 	            const block = document.createElement('div');
