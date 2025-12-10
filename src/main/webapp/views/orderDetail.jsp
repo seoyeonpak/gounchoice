@@ -1,6 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
-<jsp:useBean id="loginUser" class="model.vo.Users" scope="session"/>
+<jsp:useBean id="loginUser" class="model.vo.Users" scope="session" />
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -70,7 +70,23 @@
 		if (status === "취소") return "status-cancelled";
 		return "status-default";
 	}
+	
+	function isReviewableTime(actualDeliveryDateTimestamp) {
+        if (!actualDeliveryDateTimestamp || isNaN(actualDeliveryDateTimestamp)) return false;
 
+        const deliveryDate = new Date(actualDeliveryDateTimestamp);
+        
+        deliveryDate.setHours(0, 0, 0, 0); 
+
+        const reviewableDate = new Date(deliveryDate);
+        reviewableDate.setDate(deliveryDate.getDate() + 7); 
+        
+        const currentDate = new Date();
+        currentDate.setHours(0, 0, 0, 0);
+        
+        return currentDate.getTime() > reviewableDate.getTime();
+    }
+	
 	async function loadOrderDetail() {
 		if (!orderId) {
 			detailContentArea.innerHTML = '<h2>주문 번호가 없습니다.</h2>';
@@ -92,7 +108,7 @@
 				if (detailData && detailData.order) {
 					renderOrderDetail(detailData);
 				} else {
-					detailContentArea.innerHTML = '<h2>⚠️ 주문 정보를 찾을 수 없습니다.</h2>';
+					detailContentArea.innerHTML = '<h2>주문 정보를 찾을 수 없습니다.</h2>';
 				}
 			} else if (response.status === 401) {
 				alert("로그인이 필요합니다.");
@@ -131,7 +147,13 @@
         }
     }
 	
-	async function getReviewButtonHtml(productId) {
+	async function getReviewButtonHtml(productId, isReviewable) {
+		if (!isReviewable) {
+			return '<span class="item-review-status btn-review-pending">'
+            + '리뷰 대기'
+            + '</span>';
+        }
+		
 		const reviewCheckUrl = contextPath + "/review/get?productId=" + productId + "&userId=" + currentUserId;
 	    
 	    try {
@@ -160,9 +182,12 @@
 		const items = data.items || [];
 
 		const deliveryStatus = order.deliveryStatus;
+		const actualDeliveryTimestamp = order.actualDeliveryDate;
+		
 		const statusClass = getStatusClass(deliveryStatus);
 		
-		const isDelivered = deliveryStatus === "배송완료";
+		const hasActualDeliveryDate = !!actualDeliveryTimestamp;
+	    const isReviewable = hasActualDeliveryDate && isReviewableTime(actualDeliveryTimestamp);
 
 		let dateInfoHtml = '';
 		const estimatedDate = formatDate(order.estimatedDeliveryDate);
@@ -176,11 +201,11 @@
 			dateInfoHtml = `<p><strong>도착 예정일:</strong> \${estimatedDate}</p>`;
 		}
 		
-		const itemImageWidth = isDelivered ? '15%' : '20%';
-        const productNameWidth = isDelivered ? '30%' : '35%';
-        const orderPriceWidth = isDelivered ? '15%' : '15%';
-        const quantityWidth = isDelivered ? '10%' : '10%';
-        const totalPriceWidth = isDelivered ? '15%' : '20%';
+		const itemImageWidth = '20%';
+        const productNameWidth = hasActualDeliveryDate ? '30%' : '40%';
+        const orderPriceWidth = '15%';
+        const quantityWidth = '10%';
+        const totalPriceWidth = '15%';
         const reviewColumnWidth = '10%';
 
 		let tableBodyHtml = '';
@@ -189,8 +214,8 @@
 	        const itemTotalPrice = item.orderPrice * item.quantity;
 	        
 	        let reviewButtonHtml = '';
-	        if (isDelivered) {
-	            reviewButtonHtml = await getReviewButtonHtml(item.productId);
+	        if (hasActualDeliveryDate) {
+	            reviewButtonHtml = await getReviewButtonHtml(item.productId, isReviewable);
 	        }
 	        
 	        let rowHtml = '<tr>';
@@ -205,7 +230,7 @@
 	        rowHtml += '<td>' + formatQuantity(item.quantity) + '</td>';
 	        rowHtml += '<td>' + formatPrice(itemTotalPrice) + '</td>';
 	        
-	        if (isDelivered) {
+	        if (hasActualDeliveryDate) {
 	            rowHtml += '<td>' + reviewButtonHtml + '</td>';
 	        }
 
@@ -215,7 +240,7 @@
 		
         const itemRowsHtml = await Promise.all(itemRowsPromises);
         
-        const totalColumns = isDelivered ? 6 : 5; 
+        const totalColumns = hasActualDeliveryDate ? 6 : 5; 
         
         if (items.length === 0) {
             tableBodyHtml = '<tr><td colspan="' + totalColumns + '" style="text-align: center;">주문 상품 정보가 없습니다.</td></tr>';
@@ -223,7 +248,7 @@
             tableBodyHtml = itemRowsHtml.join('');
         }
         
-        const reviewHeaderHtml = isDelivered ? '<th style="width: ' + reviewColumnWidth + ';"></th>' : '';
+        const reviewHeaderHtml = hasActualDeliveryDate ? '<th style="width: ' + reviewColumnWidth + ';"></th>' : '';
 
 		let fullHtml =
 			'<div class="order-summary">' +
