@@ -1,12 +1,3 @@
-// 로그아웃 (/logout): 이 기능은 DB를 건드리지 않고,
-// 서블릿에서 session.invalidate()만 하면 되므로
-// DAO에는 코드가 없습니다.
-
-// 비밀번호 수정: updatePassword 메소드 쿼리를 보시면
-// WHERE ... AND PASSWORD = ?를 추가했습니다.
-// 이렇게 하면 사용자가 입력한 기존 비밀번호(oldPassword)가 틀렸을 경우
-// 수정이 아예 안 되고 0을 반환하므로, 별도의 검증 로직 없이도 안전하게 처리됩니다.
-
 package model.dao;
 
 import java.sql.Connection;
@@ -20,22 +11,24 @@ public class UsersDAO {
 
     // =======================================================
     // 1. 회원가입 (/register)
-    // - 명세: email, password, name, phonenumber, address
+    // - 수정사항: USER_ID는 DB가 알아서 넣도록 쿼리에서 제외 (안전성 확보)
     // =======================================================
     public int insertUser(Connection conn, Users user) {
         PreparedStatement pstmt = null;
         int result = 0;
 
-        // Oracle: SEQ_USERS.NEXTVAL / MySQL: null (Auto Increment)
-        String sql = "INSERT INTO USERS (USER_ID, NAME, EMAIL, PASSWORD, PHONE_NUMBER, ADDRESS) "
-                   + "VALUES (\"GOUNCHOICE\".\"ISEQ$$_80574\".nextval, ?, ?, ?, ?, ?)";
+        // [변경] USER_ID와 시퀀스(ISEQ$$...) 부분을 제거했습니다.
+        // 이러면 DB가 알아서 자동으로 1, 2, 3... 번호를 매겨줍니다.
+        String sql = "INSERT INTO USERS (NAME, EMAIL, PASSWORD, PHONE_NUMBER, ADDRESS) "
+                   + "VALUES (?, ?, ?, ?, ?)";
 
         try {
             pstmt = conn.prepareStatement(sql);
             pstmt.setString(1, user.getName());
             pstmt.setString(2, user.getEmail());
             pstmt.setString(3, user.getPassword());
-            pstmt.setString(4, user.getPhoneNumber());
+            // 여기서 들어가는 번호가 UserService에서 하이픈(-) 처리가 된 상태여야 합니다!
+            pstmt.setString(4, user.getPhoneNumber()); 
             pstmt.setString(5, user.getAddress());
 
             result = pstmt.executeUpdate();
@@ -49,7 +42,6 @@ public class UsersDAO {
 
     // =======================================================
     // 2. 이메일 중복 체크 (/dupEmailCheck)
-    // - 명세: email 받아서 사용 가능 여부 확인
     // =======================================================
     public int checkEmail(Connection conn, String email) {
         PreparedStatement pstmt = null;
@@ -64,7 +56,7 @@ public class UsersDAO {
             rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                count = rs.getInt(1); // 1 이상이면 중복
+                count = rs.getInt(1); 
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -77,7 +69,6 @@ public class UsersDAO {
 
     // =======================================================
     // 3. 로그인 (/login)
-    // - 명세: email, password 확인
     // =======================================================
     public Users loginUser(Connection conn, String email, String password) {
         Users user = null;
@@ -114,7 +105,6 @@ public class UsersDAO {
 
     // =======================================================
     // 4. 이메일 수정 (/resetEmail)
-    // - 명세: newEmail 업데이트 (로그인된 사용자 기준)
     // =======================================================
     public int updateEmail(Connection conn, int userId, String newEmail) {
         PreparedStatement pstmt = null;
@@ -136,13 +126,10 @@ public class UsersDAO {
 
     // =======================================================
     // 5. 비밀번호 수정 (/resetPassword)
-    // - 명세: oldPassword 검증 후 newPassword로 변경
-    // - 팁: 쿼리 조건에 예전 비번을 넣어버리면 검증과 수정이 동시에 됩니다.
     // =======================================================
     public int updatePassword(Connection conn, int userId, String oldPassword, String newPassword) {
         PreparedStatement pstmt = null;
         int result = 0;
-        // 조건: ID가 맞고 AND 기존 비밀번호도 맞아야 수정됨
         String sql = "UPDATE USERS SET PASSWORD = ? WHERE USER_ID = ? AND PASSWORD = ?";
 
         try {
@@ -150,9 +137,7 @@ public class UsersDAO {
             pstmt.setString(1, newPassword);
             pstmt.setInt(2, userId);
             pstmt.setString(3, oldPassword);
-            
             result = pstmt.executeUpdate(); 
-            // result가 0이면 비번 틀림, 1이면 성공
         } catch (SQLException e) {
             e.printStackTrace();
         } finally {

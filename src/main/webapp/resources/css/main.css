@@ -1,0 +1,224 @@
+/* main.css - 검색창 중앙 배치 및 최종 디자인 반영 */
+
+@charset "UTF-8";
+
+/* 초기화 및 기본 설정 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    /* 배경색: 로그인 페이지와 동일한 밝은 베이지색 */
+    font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+    background-color: #F3EBE0; 
+    color: #4b3832; /* 텍스트 색상 */
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 1. 헤더 및 로고 영역 */
+/* ---------------------------------------------------------------------- */
+
+.header-container {
+    width: 100%;
+    background-color: #B1907F; 
+    padding: 10px 40px;
+    height: 100px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* ★★★ 내부 콘텐츠를 중앙 정렬하기 위해 컨테이너를 Flex로 설정 ★★★ */
+    display: flex;
+    justify-content: center; /* 내부 콘텐츠를 중앙에 배치 */
+}
+
+/* ★★★ 내부 콘텐츠 래퍼: 로고, 검색, 유틸리티 메뉴를 한 줄에 담는 역할 ★★★ */
+.top-header-wrapper {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    align-items: center;
+    /* 로고, 검색창, 메뉴 3개의 영역을 정렬하고 공간을 균등 분배 */
+    justify-content: space-between; 
+}
+
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.logo-img {
+    height: 150px;
+    width: auto;
+    object-fit: contain;
+}
+
+/* ★★★ 검색창 영역 (중앙) ★★★ */
+.search-area {
+    display: flex;
+    justify-content: center; /* 검색창을 중앙에 배치 */
+    /* 검색창이 차지할 공간 지정 (전체 영역의 약 50%) */
+    flex: 0 0 50%; 
+}
+
+/* 검색창 폼 스타일 */
+.search-form {
+    display: flex;
+    align-items: center;
+    background-color: #ffffff;
+    border-radius: 4px;
+    overflow: hidden;
+    width: 90%; /* 중앙 영역 내에서 너비 조정 */
+    max-width: 450px;
+}
+
+.search-input {
+    border: none;
+    padding: 8px 12px;
+    outline: none;
+    font-size: 14px;
+    flex-grow: 1;
+}
+
+.search-button {
+    background-color: #9c7b69;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    height: 100%;
+    transition: background-color 0.2s;
+}
+
+.search-button:hover {
+    background-color: #8b6855;
+}
+
+/* 유틸리티 메뉴 버튼 그룹 (오른쪽) */
+.utility-area {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* 오른쪽으로 정렬 */
+    /* 유틸리티 메뉴가 차지할 공간 지정 (전체 영역의 약 25%) */
+    flex: 0 0 25%; 
+    gap: 5px; /* 버튼 간격 좁힘 */
+}
+
+/* 유틸리티 메뉴 버튼 스타일 */
+.utility-area a, .utility-area button {
+    background-color: #f1ede5;
+    border: 1px solid #9c7b69;
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #4b3832;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.utility-area a:hover, .utility-area button:hover {
+    background-color: #e0d8c7;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 2. 메인 네비게이션 영역 (바 가득 채우기) */
+/* ---------------------------------------------------------------------- */
+
+.main-nav-container {
+    background-color: #f1ede5; 
+    border-bottom: 1px solid #c9c3b4;
+    padding: 0 40px;
+}
+
+.main-nav {
+    display: flex;
+    width: 100%; 
+    max-width: none; 
+    margin: 0;
+    padding: 0;
+}
+
+.main-nav button {
+    background-color: transparent; 
+    border: none;
+    padding: 15px 0; 
+    font-size: 15px;
+    cursor: pointer;
+    color: #4b3832;
+    transition: background-color 0.2s;
+    flex-grow: 1; /* 남은 공간을 버튼들이 균등하게 나눠 가짐 */
+    text-align: center;
+}
+
+.main-nav button:hover {
+    background-color: #e0d8c7;
+}
+
+/* ---------------------------------------------------------------------- */
+/* 3. 컨텐츠 및 상품 영역 */
+/* ---------------------------------------------------------------------- */
+
+.content-container {
+    flex: 1; 
+    width: 90%;
+    max-width: 1200px;
+    margin: 30px auto;
+    display: grid;
+    grid-template-columns: 1fr; 
+    gap: 0;
+}
+
+/* 상품 리스트 영역 */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 25px;
+}
+
+.product-card {
+    background-color: #ffffff;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #dcdcdc; 
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    padding-bottom: 15px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.product-image-placeholder {
+    background-color: #f0f0f0;
+    width: 100%;
+    padding-top: 100%; 
+    margin-bottom: 10px;
+}
+
+.product-info {
+    text-align: center;
+    padding: 0 10px;
+}
+
+.product-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #4b3832;
+}
+
+.product-price {
+    font-size: 14px;
+    color: #8b6b5e;
+}

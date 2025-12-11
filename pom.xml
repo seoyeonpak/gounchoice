@@ -6,17 +6,25 @@
   <packaging>war</packaging>
   
   <properties>
+      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+      <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+      <java.version>11</java.version>
       <jakarta.servlet.version>6.0.0</jakarta.servlet.version>
       <jackson.version>2.16.1</jackson.version> 
   </properties>
   
   <dependencies>
-      
       <dependency>
-          <groupId>com.oracle</groupId>
-          <artifactId>ojdbc11</artifactId>
-          <version>21.5.0.0</version>
-      </dependency>
+	    <groupId>com.oracle.database.jdbc</groupId> 
+	    <artifactId>ojdbc11</artifactId>
+	    <version>21.9.0.0</version>
+	  </dependency>
+	  <dependency>
+    	<groupId>com.oracle.database.nls</groupId>
+    	<artifactId>orai18n</artifactId>
+    	<version>21.9.0.0</version>
+	  </dependency>
       
       <dependency>
           <groupId>com.fasterxml.jackson.core</groupId>
@@ -36,6 +44,12 @@
           <scope>provided</scope>
       </dependency>
       
+      <dependency>
+          <groupId>jakarta.servlet.jsp</groupId>
+          <artifactId>jakarta.servlet.jsp-api</artifactId>
+          <version>3.1.1</version>
+          <scope>provided</scope>
+      </dependency>
   </dependencies>
   
   <build>
@@ -50,14 +64,14 @@
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
+        <version>3.11.0</version>
         <configuration>
           <release>11</release>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-war-plugin</artifactId>
-        <version>3.2.3</version>
+        <version>3.3.2</version>
       </plugin>
     </plugins>
   </build>
