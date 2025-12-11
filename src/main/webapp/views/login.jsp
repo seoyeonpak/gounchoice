@@ -44,7 +44,7 @@
                 "password": password
             };
 
-            fetch('${pageContext.request.contextPath}/login', {
+            fetch('${pageContext.request.contextPath}/user/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json;'

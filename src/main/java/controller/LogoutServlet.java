@@ -13,16 +13,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-@WebServlet("/logout")
+@WebServlet("/user/logout")
 public class LogoutServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
 
-    // 명세서에 따라 GET 방식으로 처리 
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processLogout(request, response);
     }
 
-    // 혹시 모를 POST 요청도 처리할 수 있게 유연성 확보
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processLogout(request, response);
     }
@@ -34,14 +32,17 @@ public class LogoutServlet extends HttpServlet {
         ObjectMapper mapper = new ObjectMapper();
         Map<String, String> responseMap = new HashMap<>();
         
-        // 2. 세션 무효화 (로그아웃 핵심)
+        // 2. 세션 무효화
         HttpSession session = request.getSession(false);
         if (session != null) {
-            session.invalidate(); 
+            session.invalidate();
         }
         
         // 3. 결과 응답 (Status 200)
         response.setStatus(HttpServletResponse.SC_OK); // 200
+        
+        // [수정] 프론트엔드(JSP)가 성공 여부를 판단할 수 있도록 status 키 추가
+        responseMap.put("status", "success"); 
         responseMap.put("message", "로그아웃 되었습니다.");
         
         // 4. JSON 전송
