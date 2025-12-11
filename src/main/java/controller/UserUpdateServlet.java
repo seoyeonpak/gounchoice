@@ -24,6 +24,12 @@ public class UserUpdateServlet extends HttpServlet {
     protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         processUpdate(request, response);
     }
+    
+    // 혹시 POST로 들어올 경우도 대비
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        processUpdate(request, response);
+    }
 
     private void processUpdate(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
         // 1. 설정
@@ -33,9 +39,19 @@ public class UserUpdateServlet extends HttpServlet {
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> responseMap = new HashMap<>();
         
-        // 2. 세션 정보 가져오기 (AuthenticationFilter가 검사 완료함)
-        HttpSession session = request.getSession(); 
-        Users loginUser = (Users) session.getAttribute("loginUser");
+        // 2. 세션 정보 가져오기
+        HttpSession session = request.getSession(false); 
+        Users loginUser = (session != null) ? (Users)session.getAttribute("loginUser") : null;
+        
+        if (loginUser == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            responseMap.put("status", 401);
+            responseMap.put("code", "UNAUTHORIZED");
+            responseMap.put("message", "로그인이 필요합니다.");
+            mapper.writeValue(response.getWriter(), responseMap);
+            return;
+        }
+        
         int userId = loginUser.getUserId();
         
         try {
@@ -51,32 +67,41 @@ public class UserUpdateServlet extends HttpServlet {
                 case "/user/resetName":
                     String newName = (String) requestData.get("name");
                     result = service.updateName(userId, newName);
-                    if(result > 0) loginUser.setName(newName); 
+                    if(result > 0) {
+                        loginUser.setName(newName);
+                        responseMap.put("name", newName);
+                    }
                     break;
                     
                 case "/user/resetPhoneNumber":
                     String newPhone = (String) requestData.get("phonenumber");
                     result = service.updatePhoneNumber(userId, newPhone);
-                    if(result > 0) loginUser.setPhoneNumber(newPhone);
+                    if(result > 0) {
+                        loginUser.setPhoneNumber(newPhone);
+                        responseMap.put("phonenumber", newPhone);
+                    }
                     break;
                     
                 case "/user/resetAddress":
                     String newAddr = (String) requestData.get("address");
                     result = service.updateAddress(userId, newAddr);
-                    if(result > 0) loginUser.setAddress(newAddr);
+                    if(result > 0) {
+                        loginUser.setAddress(newAddr);
+                        responseMap.put("address", newAddr);
+                    }
                     break;
                     
                 case "/user/resetEmail":
                     String newEmail = (String) requestData.get("email");
                     if(newEmail == null) newEmail = (String) requestData.get("newEmail");
                     
-                    // [추가된 로직] 이메일 중복 체크 (본인 이메일이 아닌 경우만)
+                    // 이메일 중복 체크 (본인 이메일이 아닌 경우만)
                     if (newEmail != null && !newEmail.equals(loginUser.getEmail())) {
                         int count = service.checkEmail(newEmail);
                         if (count > 0) {
-                            // 중복되면 409 Conflict 에러 리턴하고 즉시 종료
-                            response.setStatus(HttpServletResponse.SC_CONFLICT);
-                            responseMap.put("status", "fail");
+                            response.setStatus(HttpServletResponse.SC_CONFLICT); // 409
+                            responseMap.put("status", 409);
+                            responseMap.put("code", "EMAIL_DUPLICATED");
                             responseMap.put("message", "이미 사용 중인 이메일입니다.");
                             mapper.writeValue(response.getWriter(), responseMap);
                             return; 
@@ -84,7 +109,10 @@ public class UserUpdateServlet extends HttpServlet {
                     }
                     
                     result = service.updateEmail(userId, newEmail);
-                    if(result > 0) loginUser.setEmail(newEmail);
+                    if(result > 0) {
+                        loginUser.setEmail(newEmail);
+                        responseMap.put("email", newEmail);
+                    }
                     break;
                     
                 case "/user/resetPassword":
@@ -92,30 +120,35 @@ public class UserUpdateServlet extends HttpServlet {
                     String newPw = (String) requestData.get("newPassword");
                     if (newPw == null) newPw = (String) requestData.get("password"); 
                     
-                    // 기존 비밀번호 확인은 DAO 쿼리(WHERE ... AND password=?)에서 처리됨
                     result = service.updatePassword(userId, oldPw, newPw);
-                    if(result > 0) loginUser.setPassword(newPw); 
+                    if(result > 0) {
+                        loginUser.setPassword(newPw); 
+                    }
                     break;
             }
 
             // 5. 결과 응답
             if (result > 0) {
-                // 세션 갱신 (변경된 정보를 다시 저장)
+                // 세션 갱신
                 session.setAttribute("loginUser", loginUser);
                 
                 response.setStatus(HttpServletResponse.SC_OK);
-                responseMap.put("status", "success");
+                responseMap.put("status", 200); // 200 OK
+                responseMap.put("code", "SUCCESS"); // [추가] 성공 코드 통일
                 responseMap.put("message", "정보가 수정되었습니다.");
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                responseMap.put("status", "fail");
+                responseMap.put("status", 400); // 400 Bad Request
+                responseMap.put("code", "UPDATE_FAILED");
                 responseMap.put("message", "정보 수정 실패 (입력값을 확인해주세요)");
             }
 
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            responseMap.put("message", "서버 오류 발생");
+            responseMap.put("status", 500); // 500 Server Error
+            responseMap.put("code", "SERVER_ERROR");
+            responseMap.put("message", "서버 내부 오류가 발생했습니다.");
         }
 
         mapper.writeValue(response.getWriter(), responseMap);

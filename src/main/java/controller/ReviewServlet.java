@@ -19,7 +19,7 @@ import model.service.ReviewService;
 import model.vo.ReviewContent;
 import model.vo.Users;
 
-@WebServlet({"/review/writeReview", "/review/deleteReview"})
+@WebServlet({"/review/write", "/review/delete"})
 public class ReviewServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
     
@@ -51,6 +51,8 @@ public class ReviewServlet extends HttpServlet {
         
         if (loginUser == null) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            responseMap.put("status", 401);
+            responseMap.put("code", "UNAUTHORIZED");
             responseMap.put("message", "로그인이 필요합니다.");
             mapper.writeValue(response.getWriter(), responseMap);
             return;
@@ -67,10 +69,12 @@ public class ReviewServlet extends HttpServlet {
             int result = 0;
             String message = "";
 
-            if ("/writeReview".equals(path)) {
+            if ("/review/write".equals(path)) {
                 // [리뷰 작성 로직]
-                // JSON 예시: { "productId": 1, "contents": [ {"question": "...", "selectedOption": 5}, ... ] }
-                int productId = (int) requestData.get("productId");
+                Object pIdObj = requestData.get("productId");
+                if(pIdObj == null) throw new IllegalArgumentException("상품 ID가 필요합니다.");
+                
+                int productId = Integer.parseInt(pIdObj.toString());
                 
                 List<Map<String, Object>> contentList = (List<Map<String, Object>>) requestData.get("contents");
                 List<ReviewContent> reviewContents = new ArrayList<>();
@@ -79,9 +83,11 @@ public class ReviewServlet extends HttpServlet {
                     for (Map<String, Object> map : contentList) {
                         ReviewContent rc = new ReviewContent();
                         rc.setQuestion((String) map.get("question"));
-                        // 숫자 형변환 안전 처리 (Integer -> Double)
+                        
                         Object scoreObj = map.get("selectedOption");
-                        rc.setSelectedOption(Double.parseDouble(scoreObj.toString()));
+                        if(scoreObj != null) {
+                             rc.setSelectedOption(Double.parseDouble(scoreObj.toString()));
+                        }
                         
                         reviewContents.add(rc);
                     }
@@ -90,29 +96,42 @@ public class ReviewServlet extends HttpServlet {
                 result = reviewService.writeReview(userId, productId, reviewContents);
                 message = "리뷰가 등록되었습니다.";
                 
-            } else if ("/deleteReview".equals(path)) {
+            } else if ("/review/delete".equals(path)) {
                 // [리뷰 삭제 로직]
-                // JSON 예시: { "reviewId": 15 }
-                int reviewId = (int) requestData.get("reviewId");
+                Object rIdObj = requestData.get("reviewId");
+                if(rIdObj == null) throw new IllegalArgumentException("리뷰 ID가 필요합니다.");
+
+                int reviewId = Integer.parseInt(rIdObj.toString());
                 result = reviewService.deleteReview(reviewId, userId);
                 message = "리뷰가 삭제되었습니다.";
             }
 
             // 3. 응답 처리
             if (result > 0) {
-                response.setStatus(HttpServletResponse.SC_OK);
-                responseMap.put("status", "success");
+                response.setStatus(HttpServletResponse.SC_OK); // 200 (또는 생성시 201)
+                responseMap.put("status", 200); 
+                responseMap.put("code", "SUCCESS"); // [추가] 성공 코드 통일
                 responseMap.put("message", message);
             } else {
                 response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                responseMap.put("status", "fail");
+                responseMap.put("status", 400); 
+                responseMap.put("code", "REQUEST_FAILED");
                 responseMap.put("message", "요청 처리에 실패했습니다. (중복 등록 등)");
             }
 
+        } catch (IllegalArgumentException e) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            responseMap.put("status", 400);
+            responseMap.put("code", "INVALID_PARAMETER");
+            responseMap.put("message", e.getMessage());
+            
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            responseMap.put("message", "서버 오류: " + e.getMessage());
+            
+            responseMap.put("status", 500); 
+            responseMap.put("code", "SERVER_ERROR");
+            responseMap.put("message", "서버 내부 오류가 발생했습니다.");
         }
         
         mapper.writeValue(response.getWriter(), responseMap);
