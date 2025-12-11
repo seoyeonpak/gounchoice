@@ -113,7 +113,7 @@ public class CartServlet extends HttpServlet {
                     
                 case "/cart/clear":
                     // 전체 비우기 (POST, 파라미터 없음)
-                    result = service.clearCart(userId); // Service에 추가 필요!
+                    result = service.clearCart(userId);
                     message = "장바구니를 비웠습니다.";
                     break;
             }

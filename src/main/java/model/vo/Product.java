@@ -1,5 +1,7 @@
 package model.vo;
 
+import java.util.List;
+
 public class Product {
     private int productId;          // product_id
     private int categoryId;         // category_id
@@ -8,14 +10,18 @@ public class Product {
     private String productImage;    // product_image
     private int price;              // price
     private int stockQuantity;      // stock_quantity
-	
+    
+    private int reviewCount;
+    private double meanRating;
+
+    private List<Rating> ratingDetail;
+    
     public Product() {
 		super();
-		// TODO Auto-generated constructor stub
 	}
-
+    
 	public Product(int productId, int categoryId, String productName, String productDescription, String productImage,
-			int price, int stockQuantity) {
+			int price, int stockQuantity, int reviewCount, double meanRating, List<Rating> ratingDetail) {
 		super();
 		this.productId = productId;
 		this.categoryId = categoryId;
@@ -24,6 +30,9 @@ public class Product {
 		this.productImage = productImage;
 		this.price = price;
 		this.stockQuantity = stockQuantity;
+        this.reviewCount = reviewCount;
+        this.meanRating = meanRating;
+        this.ratingDetail = ratingDetail;
 	}
 
 	public int getProductId() {
@@ -81,12 +90,38 @@ public class Product {
 	public void setStockQuantity(int stockQuantity) {
 		this.stockQuantity = stockQuantity;
 	}
+    
+    public int getReviewCount() {
+        return reviewCount;
+    }
+
+    public void setReviewCount(int reviewCount) {
+        this.reviewCount = reviewCount;
+    }
+
+    public double getMeanRating() {
+        return meanRating;
+    }
+
+    public void setMeanRating(double meanRating) {
+        this.meanRating = meanRating;
+    }
+
+    public List<Rating> getRatingDetail() {
+        return ratingDetail;
+    }
+
+    public void setRatingDetail(List<Rating> ratingDetail) {
+        this.ratingDetail = ratingDetail;
+    }
+
 
 	@Override
 	public String toString() {
 		return "Product [productId=" + productId + ", categoryId=" + categoryId + ", productName=" + productName
 				+ ", productDescription=" + productDescription + ", productImage=" + productImage + ", price=" + price
-				+ ", stockQuantity=" + stockQuantity + "]";
+				+ ", stockQuantity=" + stockQuantity + ", reviewCount=" + reviewCount + ", meanRating=" + meanRating 
+                + ", ratingDetail=" + ratingDetail + "]";
 	}
     
 }

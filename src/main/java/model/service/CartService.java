@@ -18,6 +18,11 @@ public class CartService {
     // 1. 장바구니 담기 서비스
     // ==========================================================
     public int addToCart(int userId, int productId, int quantity) {
+        // [검증 1] 담으려는 수량이 0 이하라면 실패 처리 (또는 0 반환)
+        if (quantity <= 0) {
+            return 0; 
+        }
+
         Connection conn = JDBCTemplate.getConnection();
         int result = 0;
         
@@ -35,6 +40,8 @@ public class CartService {
             int currentQty = cDao.checkItemExists(conn, cartId, productId);
             
             if (currentQty > 0) {
+                // 이미 있는 상품이면 수량 추가 (기존 + 추가)
+                // 합친 결과가 너무 커지는 경우(오버플로우 등)는 DB 제약조건에 맡김
                 result = cDao.updateCartItemQuantity(conn, cartId, productId, quantity, true);
             } else {
                 CartItem newItem = new CartItem(cartId, productId, quantity);
@@ -82,9 +89,7 @@ public class CartService {
                 Map<String, Object> itemMap = new HashMap<>();
                 itemMap.put("productId", item.getProductId());
                 itemMap.put("productName", item.getProductName());
-                
                 itemMap.put("price", item.getPrice());      
-                
                 itemMap.put("quantity", item.getQuantity());
                 itemMap.put("productImage", item.getProductImage());
                 
@@ -111,15 +116,22 @@ public class CartService {
     }
 
     // ==========================================================
-    // 3. 수량 변경 서비스
+    // 3. 수량 변경 서비스 (정책 적용: 0 이하면 삭제)
     // ==========================================================
     public int updateQuantity(int userId, int productId, int quantity) {
         Connection conn = JDBCTemplate.getConnection();
         int result = 0;
         try {
             int cartId = cDao.selectCartIdByUserId(conn, userId);
+            
             if (cartId > 0) {
-                result = cDao.updateCartItemQuantity(conn, cartId, productId, quantity, false);
+                // [정책 적용] 수량이 0 이하라면 아예 삭제해버림
+                if (quantity <= 0) {
+                    result = cDao.deleteCartItem(conn, cartId, productId);
+                } else {
+                    // 0보다 크면 정상 수정 (덮어쓰기 모드: false)
+                    result = cDao.updateCartItemQuantity(conn, cartId, productId, quantity, false);
+                }
             }
             
             if (result > 0) JDBCTemplate.commit(conn);

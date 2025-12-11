@@ -15,24 +15,30 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 
-// "/*" : 모든 요청을 다 감시하겠다는 뜻입니다.
+// "/*" : 모든 요청을 다 감시
 @WebFilter("/*")
 public class AuthenticationFilter extends HttpFilter implements Filter {
     private static final long serialVersionUID = 1L;
 
     // [화이트리스트] 로그인 안 해도 들어갈 수 있는 경로들
     private static final List<String> WHITE_LIST = Arrays.asList(
-        "/",                // 메인
+        // 1. 메인 및 정적 페이지
+    	"/",                	// 메인
         "/index.jsp",
-        "/views/login.jsp",      // 로그인 화면
+        "/views/login.jsp",     // 로그인 화면
         "/views/signup.jsp",
-        "/user/login",           // 로그인 요청
-        "/user/logout",          // 로그아웃 요청
-        "/user/register",   	 // 회원가입 요청 (중요!)
-        "/user/dupEmailCheck",   // 이메일 중복 체크
+        
+        // 2. 회원 관련 (비로그인 허용)
+        "/user/login",          // 로그인 요청
+        "/user/register",   	// 회원가입 요청 (중요!)
+        "/user/dupEmailCheck",  // 이메일 중복 체크
+        
+        // 3. 상품 관련 (비로그인 허용)
         "/product/search",  // 상품 목록
-        "/product/detail"   // 상품 상세
-        // "/resources" 는 아래 코드에서 startWith로 별도 처리함
+        "/product/detail",  // 상품 상세
+        "/product/recommend"
+        
+        // "/resources" 는 아래 코드에서 startWith로 별도 처리
     );
 
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {

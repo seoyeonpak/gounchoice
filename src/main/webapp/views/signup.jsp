@@ -3,7 +3,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>고운선택</title>
+    <title>고운선택 - 회원가입 페이지</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/signup.css">
     <link rel="icon" type="image/x-icon" href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
@@ -34,7 +34,7 @@
                 </div>
                 <div class="input-group">
                     <img src="${pageContext.request.contextPath}/resources/images/phonenumber.png" alt="전화번호" class="phoneNumber-img">
-                    <input type="text" id="phoneNumber" name="phoneNumber" class="input-field" placeholder="전화번호">
+                    <input type="text" id="phoneNumber" name="phoneNumber" class="input-field" placeholder="전화번호 (010-XXXX-XXXX)">
                 </div>
                 <div class="input-group">
                     <img src="${pageContext.request.contextPath}/resources/images/address.png" alt="주소" class="address-img">
@@ -64,10 +64,11 @@
                 "address": address
             };
 
+
             fetch('${pageContext.request.contextPath}/user/register', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json;'
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(requestData)
             })

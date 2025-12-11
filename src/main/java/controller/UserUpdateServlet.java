@@ -15,7 +15,7 @@ import jakarta.servlet.http.HttpSession;
 import model.service.UserService;
 import model.vo.Users;
 
-// [수정 1] URL 매핑을 '/user/...' 형식으로 통일 (Filter 및 switch문과 일치시킴)
+// 5개 수정 기능 URL 통합 매핑
 @WebServlet({"/user/resetName", "/user/resetPassword", "/user/resetPhoneNumber", "/user/resetAddress", "/user/resetEmail"})
 public class UserUpdateServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
@@ -33,27 +33,22 @@ public class UserUpdateServlet extends HttpServlet {
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> responseMap = new HashMap<>();
         
-        // [수정 2] 컴파일 에러 해결
-        // AuthenticationFilter가 이미 검사하고 들어왔으므로 getSession()만 호출하면 됩니다.
-        // 하지만 아래쪽에서 session.setAttribute()를 쓰려면 변수 선언은 필수입니다.
+        // 2. 세션 정보 가져오기 (AuthenticationFilter가 검사 완료함)
         HttpSession session = request.getSession(); 
-        
         Users loginUser = (Users) session.getAttribute("loginUser");
         int userId = loginUser.getUserId();
         
         try {
-            // [수정 3] Type Safety 경고 해결
-            // JSON에는 문자열 외에 숫자/불린 등이 섞일 수 있으므로 <String, Object>가 안전합니다.
+            // 3. JSON 데이터 파싱
             Map<String, Object> requestData = mapper.readValue(request.getInputStream(), Map.class);
             
             String path = request.getServletPath();
             UserService service = new UserService();
             int result = 0;
             
-            // 5. URL별 로직 분기
+            // 4. URL별 로직 분기
             switch (path) {
                 case "/user/resetName":
-                    // Object 타입이므로 (String)으로 형변환
                     String newName = (String) requestData.get("name");
                     result = service.updateName(userId, newName);
                     if(result > 0) loginUser.setName(newName); 
@@ -75,6 +70,19 @@ public class UserUpdateServlet extends HttpServlet {
                     String newEmail = (String) requestData.get("email");
                     if(newEmail == null) newEmail = (String) requestData.get("newEmail");
                     
+                    // [추가된 로직] 이메일 중복 체크 (본인 이메일이 아닌 경우만)
+                    if (newEmail != null && !newEmail.equals(loginUser.getEmail())) {
+                        int count = service.checkEmail(newEmail);
+                        if (count > 0) {
+                            // 중복되면 409 Conflict 에러 리턴하고 즉시 종료
+                            response.setStatus(HttpServletResponse.SC_CONFLICT);
+                            responseMap.put("status", "fail");
+                            responseMap.put("message", "이미 사용 중인 이메일입니다.");
+                            mapper.writeValue(response.getWriter(), responseMap);
+                            return; 
+                        }
+                    }
+                    
                     result = service.updateEmail(userId, newEmail);
                     if(result > 0) loginUser.setEmail(newEmail);
                     break;
@@ -84,15 +92,15 @@ public class UserUpdateServlet extends HttpServlet {
                     String newPw = (String) requestData.get("newPassword");
                     if (newPw == null) newPw = (String) requestData.get("password"); 
                     
+                    // 기존 비밀번호 확인은 DAO 쿼리(WHERE ... AND password=?)에서 처리됨
                     result = service.updatePassword(userId, oldPw, newPw);
                     if(result > 0) loginUser.setPassword(newPw); 
                     break;
             }
 
-            // 6. 결과 응답
+            // 5. 결과 응답
             if (result > 0) {
-                // [중요] 세션 갱신: 변경된 정보가 담긴 객체를 다시 세션에 덮어씌웁니다.
-                // 이걸 해야 새로고침 했을 때 바뀐 정보(이름 등)가 화면에 보입니다.
+                // 세션 갱신 (변경된 정보를 다시 저장)
                 session.setAttribute("loginUser", loginUser);
                 
                 response.setStatus(HttpServletResponse.SC_OK);
@@ -107,7 +115,7 @@ public class UserUpdateServlet extends HttpServlet {
         } catch (Exception e) {
             e.printStackTrace();
             response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            responseMap.put("message", "서버 오류");
+            responseMap.put("message", "서버 오류 발생");
         }
 
         mapper.writeValue(response.getWriter(), responseMap);

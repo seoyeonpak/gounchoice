@@ -3,7 +3,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>고운선택</title>
+    <title>고운선택 - 로그인 페이지</title>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/resources/css/login.css">
     <link rel="icon" type="image/x-icon" href="${pageContext.request.contextPath}/resources/images/favicon.png">
 </head>
@@ -47,13 +47,12 @@
             fetch('${pageContext.request.contextPath}/user/login', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json;'
+                    'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(requestData)
             })
             .then(async response => {
                 if (response.status === 200) {
-                    alert("로그인 성공!");
                     window.location.href = "../index.jsp"; 
                 } else if (response.status === 400) {
                     const errorData = await response.json();
